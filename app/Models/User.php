@@ -163,7 +163,10 @@ class User extends Authenticatable
     public function midwife()
     {
         return $this->hasOne(Midwife::class, 'email', 'email');
+            return $this->hasOne(Midwife::class); // Adjust the model name as per your setup
+
     }
+
    public function baby()
     {
         return $this->hasOne(Baby::class);

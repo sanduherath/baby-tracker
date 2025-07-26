@@ -12,6 +12,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use App\Models\Notification;
 
 
 class AppointmentController extends Controller
@@ -253,214 +254,7 @@ class AppointmentController extends Controller
         ]);
     }
 
-    // public function storeClinicRecord(Request $request, $appointmentId)
-    // {
-    //     // Authenticate user and midwife
-    //     $user = Auth::user();
-    //     if (!$user || !$user->midwife) {
-    //         Log::error('Unauthorized clinic record save attempt', ['appointment_id' => $appointmentId]);
-    //         return redirect()->back()->with('error', 'Unauthorized action.');
-    //     }
-    //     $midwife = $user->midwife;
 
-    //     // Fetch appointment
-    //     try {
-    //         $appointment = Appointment::findOrFail($appointmentId);
-    //     } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-    //         Log::error('Appointment not found', ['appointment_id' => $appointmentId]);
-    //         return redirect()->back()->with('error', 'Appointment not found.');
-    //     }
-
-    //     // Verify midwife authorization
-    //     if ($appointment->midwife_id !== $midwife->id) {
-    //         Log::error('Unauthorized clinic record save attempt', [
-    //             'appointment_id' => $appointmentId,
-    //             'midwife_id' => $midwife->id
-    //         ]);
-    //         return redirect()->back()->with('error', 'Unauthorized action.');
-    //     }
-
-    //     // Get valid vaccination names for validation
-    //     $validVaccinations = $appointment->type === 'vaccination' && $appointment->patient_type === 'baby'
-    //         ? Vaccination::where('baby_id', $appointment->patient_id)
-    //         ->whereIn('status', ['pending', 'missed'])
-    //         ->pluck('vaccine_name')
-    //         ->toArray()
-    //         : [];
-
-    //     // Define allowed vaccination names
-    //     $allowedVaccinations = [
-    //         'bcg',
-    //         'opv0',
-    //         'hepatitis_b',
-    //         'dtap',
-    //         'hib',
-    //         'ipv',
-    //         'pcv13',
-    //         'rotavirus',
-    //         'mmr',
-    //         'Hepatitis B'
-    //     ];
-
-    //     // Validate request
-    //     $validated = $request->validate([
-    //         'weight' => 'nullable|numeric|min:0|max:99.99',
-    //         'height' => 'nullable|numeric|min:0|max:99.99',
-    //         'head_circumference' => 'nullable|numeric|min:0|max:99.99',
-    //         'nutrition' => 'nullable|string|in:thriposha,vitamins',
-    //         'thriposha_packets' => 'required_if:nutrition,thriposha|nullable|in:1,2',
-    //         'vaccination_name' => [
-    //             $appointment->type === 'vaccination' ? 'required' : 'nullable',
-    //             'string',
-    //             function ($attribute, $value, $fail) use ($validVaccinations, $allowedVaccinations, $appointment) {
-    //                 if ($appointment->type === 'vaccination' && !in_array($value, $validVaccinations) && !in_array($value, $allowedVaccinations)) {
-    //                     $fail('The selected vaccination is not valid or not pending/missed for this patient.');
-    //                 }
-    //             },
-    //         ],
-    //         'midwife_accommodations' => 'nullable|string|max:1000',
-    //     ]);
-
-    //     // Handle Thriposha distribution and stock update
-    //     if ($appointment->type === 'checkup' && $validated['nutrition'] === 'thriposha' && !empty($validated['thriposha_packets'])) {
-    //         // Determine Thriposha type based on patient type
-    //         $thriposhaType = $appointment->patient_type === 'baby' ? 'baby' : 'mother';
-
-    //         // Fetch the latest ThriposhaDistribution record to get current stock
-    //         $latestThriposhaRecord = ThriposhaDistribution::latest()->first();
-    //         $currentBabyStock = $latestThriposhaRecord ? $latestThriposhaRecord->baby_thriposha_quantity : 0;
-    //         $currentMotherStock = $latestThriposhaRecord ? $latestThriposhaRecord->mother_thriposha_quantity : 0;
-
-    //         // Check if sufficient stock exists
-    //         $packets = (int) $validated['thriposha_packets'];
-    //         $currentStock = $thriposhaType === 'baby' ? $currentBabyStock : $currentMotherStock;
-    //         if ($currentStock < $packets) {
-    //             Log::warning('Insufficient Thriposha stock for distribution', [
-    //                 'appointment_id' => $appointment->id,
-    //                 'thriposha_type' => $thriposhaType,
-    //                 'requested_packets' => $packets,
-    //                 'current_stock' => $currentStock,
-    //             ]);
-    //             return redirect()->back()->with('error', "Insufficient $thriposhaType Thriposha stock. Only $currentStock packets available.");
-    //         }
-
-    //         // Fetch patient details for recipient
-    //         $patient = $appointment->patient_type === 'baby'
-    //             ? Baby::find($appointment->patient_id)
-    //             : PregnantWoman::find($appointment->patient_id);
-    //         $recipientName = $patient ? $patient->name : 'Unknown';
-    //         $recipientId = $patient ? $appointment->patient_id : null;
-
-    //         // Create ThriposhaDistribution record for distribution
-    //         $newBabyStock = $thriposhaType === 'baby' ? $currentBabyStock - $packets : $currentBabyStock;
-    //         $newMotherStock = $thriposhaType === 'mother' ? $currentMotherStock - $packets : $currentMotherStock;
-
-    //         ThriposhaDistribution::create([
-    //             'date' => Carbon::now('Asia/Kolkata'),
-    //             'type' => $thriposhaType,
-    //             'quantity' => $packets,
-    //             'transaction_type' => 'distribution',
-    //             'recipient' => $recipientName,
-    //             'recipient_id' => $recipientId,
-    //             'notes' => $validated['midwife_accommodations'] ?? null,
-    //             'baby_thriposha_quantity' => $newBabyStock,
-    //             'mother_thriposha_quantity' => $newMotherStock,
-    //         ]);
-
-    //         Log::info('Thriposha distribution recorded', [
-    //             'appointment_id' => $appointment->id,
-    //             'thriposha_type' => $thriposhaType,
-    //             'quantity' => $packets,
-    //             'new_baby_stock' => $newBabyStock,
-    //             'new_mother_stock' => $newMotherStock,
-    //         ]);
-    //     }
-
-    //     // Create clinic record
-    //     $clinicRecord = ClinicRecord::create([
-    //         'appointment_id' => $appointment->id,
-    //         'patient_id' => $appointment->patient_id,
-    //         'patient_type' => $appointment->patient_type,
-    //         'weight' => $validated['weight'],
-    //         'height' => $validated['height'],
-    //         'head_circumference' => $appointment->type === 'checkup' ? $validated['head_circumference'] : null,
-    //         'nutrition' => $appointment->type === 'checkup' ? $validated['nutrition'] : null,
-    //         'thriposha_packets' => $appointment->type === 'checkup' && $validated['nutrition'] === 'thriposha' ? $validated['thriposha_packets'] : null,
-    //         'vaccination_name' => $appointment->type === 'vaccination' ? $validated['vaccination_name'] : null,
-    //         'midwife_accommodations' => $validated['midwife_accommodations'],
-    //     ]);
-
-    //     // Update appointment status
-    //     $appointment->update(['status' => 'completed']);
-
-    //     // Update vaccination record
-    //     if ($appointment->type === 'vaccination' && !empty($validated['vaccination_name']) && $appointment->patient_type === 'baby') {
-    //         $vaccineName = $validated['vaccination_name'];
-    //         Log::info('Attempting to update vaccination record', [
-    //             'appointment_id' => $appointment->id,
-    //             'baby_id' => $appointment->patient_id,
-    //             'vaccine_name' => $vaccineName,
-    //         ]);
-
-    //         // Find the first eligible vaccination record
-    //         $vaccination = Vaccination::where('baby_id', $appointment->patient_id)
-    //             ->where('vaccine_name', $vaccineName)
-    //             ->whereIn('status', ['pending', 'missed'])
-    //             ->orderByRaw("CASE dose
-    //                 WHEN '1st' THEN 1
-    //                 WHEN '1' THEN 1
-    //                 WHEN '2nd' THEN 2
-    //                 WHEN '2' THEN 2
-    //                 WHEN '3rd' THEN 3
-    //                 WHEN '3' THEN 3
-    //                 ELSE 999 END")
-    //             ->first();
-
-    //         if ($vaccination) {
-    //             // Update existing record to status 'completed'
-    //             $vaccination->update([
-    //                 'status' => 'completed',
-    //                 'date_administered' => Carbon::now('Asia/Kolkata')->toDateString(),
-    //                 'administered_by' => $midwife->id,
-    //                 'clinic_or_hospital' => 'Clinic',
-    //             ]);
-
-    //             Log::info('Vaccination record updated', [
-    //                 'vaccination_id' => $vaccination->id,
-    //                 'baby_id' => $appointment->patient_id,
-    //                 'vaccine_name' => $vaccineName,
-    //                 'dose' => $vaccination->dose,
-    //                 'status' => 'completed',
-    //             ]);
-    //         } else {
-    //             // Log warning if no record found
-    //             Log::warning('No eligible vaccination record found to update', [
-    //                 'baby_id' => $appointment->patient_id,
-    //                 'vaccine_name' => $vaccineName,
-    //                 'valid_statuses' => ['pending', 'missed'],
-    //             ]);
-
-    //             // Return error instead of creating a new record
-    //             return redirect()->route('midwife.appointments')->with('error', 'No pending or missed vaccination record found for ' . $vaccineName);
-    //         }
-    //     } else {
-    //         Log::info('No vaccination update required', [
-    //             'appointment_id' => $appointment->id,
-    //             'type' => $appointment->type,
-    //             'patient_type' => $appointment->patient_type,
-    //             'vaccination_name' => $validated['vaccination_name'] ?? null,
-    //         ]);
-    //     }
-
-    //     Log::info('Clinic record saved and appointment completed', [
-    //         'clinic_record_id' => $clinicRecord->id,
-    //         'appointment_id' => $appointment->id,
-    //         'patient_id' => $appointment->patient_id,
-    //         'vaccination_name' => $validated['vaccination_name'] ?? null,
-    //     ]);
-
-    //     return redirect()->route('midwife.appointments')->with('success', 'Clinic record saved and appointment marked as completed.');
-    // }
     public function storeClinicRecord(Request $request, $appointmentId)
     {
         // Authenticate user and midwife
@@ -915,37 +709,71 @@ class AppointmentController extends Controller
     }
     public function reschedule(Request $request, $appointmentId)
     {
+        Log::info('Reschedule attempt', ['appointment_id' => $appointmentId, 'input' => $request->all()]);
         $user = Auth::user();
         if (!$user || !$user->midwife) {
-            Log::error('Unauthorized reschedule attempt', ['appointment_id' => $appointmentId]);
+            Log::error('Unauthorized reschedule', ['appointment_id' => $appointmentId]);
             return redirect()->back()->with('error', 'Unauthorized action.');
         }
         $midwife = $user->midwife;
 
         $appointment = Appointment::findOrFail($appointmentId);
         if ($appointment->midwife_id !== $midwife->id) {
-            Log::error('Unauthorized reschedule attempt', ['appointment_id' => $appointmentId, 'midwife_id' => $midwife->id]);
+            Log::error('Unauthorized reschedule', ['appointment_id' => $appointmentId, 'midwife_id' => $midwife->id]);
             return redirect()->back()->with('error', 'Unauthorized action.');
         }
 
         $validated = $request->validate([
-            'date' => 'required|date|after_or_equal:today',
-            'time' => 'required',
+            'date' => [
+                'required',
+                'date',
+                function ($attribute, $value, $fail) use ($request) {
+                    $now = Carbon::now('Asia/Kolkata'); // 01:11 AM IST, July 27, 2025
+                    $inputDate = Carbon::parse($value . ' ' . $request->input('time'), 'Asia/Kolkata');
+                    if ($inputDate->lte($now)) {
+                        $fail('Date and time must be after ' . $now->format('Y-m-d H:i:s') . ' IST.');
+                    }
+                },
+            ],
+            'time' => 'required|date_format:H:i',
+            'type' => 'required|in:vaccination,checkup,prenatal,other',
+            'vaccination_type' => 'required_if:type,vaccination|nullable|string|in:bcg,opv0,hepatitis_b,dtap,hib,ipv,pcv13,rotavirus,mmr',
+            'notes' => 'nullable|string|max:1000',
         ]);
 
-        $appointment->update([
-            'date' => $validated['date'],
-            'time' => $validated['time'],
-            'status' => 'scheduled',
-        ]);
+        try {
+            $appointment->update([
+                'date' => $validated['date'],
+                'time' => $validated['time'],
+                'type' => $validated['type'],
+                'vaccination_type' => $validated['type'] === 'vaccination' ? $validated['vaccination_type'] : $appointment->vaccination_type,
+                'notes' => $validated['notes'] ?? $appointment->notes,
+                'status' => 'scheduled',
+                'read' => 0,
+            ]);
 
-        Log::info('Appointment rescheduled', [
-            'appointment_id' => $appointment->id,
-            'new_date' => $validated['date'],
-            'new_time' => $validated['time'],
-        ]);
+            if ($appointment->patient_type === 'baby' && $appointment->status === 'scheduled') {
+                $baby = Baby::find($appointment->patient_id);
+                if ($baby && $baby->user) {
+                    $message = "Rescheduled {$appointment->type} appointment for " .
+                        \Carbon\Carbon::parse($appointment->date)->format('F d, Y') .
+                        ($appointment->time ? ' at ' . \Carbon\Carbon::parse($appointment->time)->format('h:i A') : '') .
+                        ($appointment->type === 'vaccination' && $appointment->vaccination_type ? " ({$appointment->vaccination_type})" : '');
+                    Notification::create([
+                        'user_id' => $baby->user->id,
+                        'appointment_id' => $appointment->id,
+                        'message' => $message,
+                        'read' => false,
+                    ]);
+                }
+            }
 
-        return redirect()->route('midwife.appointments')->with('success', 'Appointment rescheduled successfully.');
+            Log::info('Reschedule success', ['appointment_id' => $appointment->id, 'new_date' => $validated['date'], 'new_time' => $validated['time'], 'old_status' => $appointment->getOriginal('status')]);
+            return redirect()->route('midwife.appointments')->with('success', 'Appointment rescheduled.');
+        } catch (\Exception $e) {
+            Log::error('Reschedule failed', ['appointment_id' => $appointment->id, 'error' => $e->getMessage(), 'input' => $request->all()]);
+            return redirect()->back()->with('error', 'Reschedule failed. Check logs.');
+        }
     }
     public function getPendingVaccinations($appointmentId)
     {

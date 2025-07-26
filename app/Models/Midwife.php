@@ -8,7 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class Midwife extends Model
 {
     use HasFactory;
-
+protected $table = 'midwives';
+    protected $primaryKey = 'id';
     protected $fillable = [
         'full_name',
         'nic',

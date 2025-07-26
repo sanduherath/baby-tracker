@@ -50,6 +50,7 @@ class Baby extends Authenticatable
         'hepb_vaccine',
         'additional_notes',
         'midwife_name',
+        'midwife_id',
         'midwife_contact',
         'regional_health_division',
         'rh_contact_1',

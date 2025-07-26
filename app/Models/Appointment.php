@@ -16,6 +16,7 @@ class Appointment extends Model
         'vaccination_type',
         'notes',
         'status',
+        
     ];
 
     public function midwife()
