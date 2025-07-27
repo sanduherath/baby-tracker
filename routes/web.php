@@ -14,6 +14,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ThriposhaController;
 use App\Http\Controllers\VaccinationAlertController;
 use App\Http\Controllers\BabyDiaryController;
+use App\Http\Controllers\MidwifeDashboardController;
 
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('login.post')->middleware('throttle:5,1');
@@ -92,3 +93,6 @@ Route::post('/patients/baby', [PatientController::class, 'storeBaby'])->name('pa
 Route::post('/patients/pregnant', [PatientController::class, 'storePregnantWoman'])->name('patients.storePregnantWoman');
 Route::post('/appointments/{appointmentId}/clinic-record', [AppointmentController::class, 'storeClinicRecord'])->name('appointments.storeClinicRecord');
 Route::post('/appointments/search', [AppointmentController::class, 'search'])->name('appointments.search');
+
+
+Route::get('/midwife/dashboard', [MidwifeDashboardController::class, 'index'])->name('midwife.dashboard')->middleware('auth');

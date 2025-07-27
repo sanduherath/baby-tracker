@@ -101,4 +101,8 @@ class PregnantWoman extends Authenticatable
     {
         return $this->belongsTo(Midwife::class);
     }
+    public function pregnantWomen()
+{
+    return $this->hasMany(PregnantWoman::class);
+}
 }

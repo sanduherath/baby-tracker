@@ -15,6 +15,7 @@ class Patient extends Model
         'grama_niladhari_division',
         'moh_area',
         'address',
+        'midwife_id',
     ];
 
     // Define polymorphic relationship for specific patient types

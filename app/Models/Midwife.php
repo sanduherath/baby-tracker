@@ -55,7 +55,10 @@ protected $table = 'midwives';
     public function user()
     {
         return $this->belongsTo(User::class, 'email', 'email');
+            return $this->belongsTo(User::class, 'user_id');
+
     }
+
     public function appointments()
     {
         return $this->hasMany(Appointment::class);
@@ -69,4 +72,11 @@ protected $table = 'midwives';
     {
         return $this->hasMany(PregnantWoman::class);
     }
+    // User.php
+public function midwife()
+{
+    return $this->hasOne(Midwife::class, 'user_id'); // Assuming midwives table has user_id foreign key
+}
+// Midwife.php
+
 }

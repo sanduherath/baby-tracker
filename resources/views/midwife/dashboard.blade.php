@@ -37,7 +37,6 @@
             transition: all 0.3s;
             z-index: 1000;
             overflow-y: auto;
-
         }
 
         .midphoto {
@@ -343,7 +342,7 @@
     <div class="sidebar" id="sidebar">
         <div class="d-flex flex-column p-3 text-white" style="height: 100%">
             <div class="text-center mb-4 mt-3 d-none d-lg-block">
-                <img src="Assests/mid.jpeg"class="rounded-circle mb-2 midphoto" alt="Profile" id="profileImage"
+                <img src="Assests/mid.jpeg" class="rounded-circle mb-2 midphoto" alt="Profile" id="profileImage"
                     data-bs-toggle="modal" data-bs-target="#profileModal" />
                 <h5>{{ Auth::user()->name }}</h5>
                 <small class="text-white-50">Registered Midwife</small>
@@ -364,8 +363,6 @@
                         <i class="fas fa-calendar-check"></i> Appointments
                     </a>
                 </li>
-
-
                 <li>
                     <a href="{{ route('thriposha.distribution') }}" class="nav-link">
                         <i class="fas fa-utensils"></i> Nutrition
@@ -381,7 +378,6 @@
                         <i class="fas fa-file-medical"></i> Reports
                     </a>
                 </li>
-
             </ul>
             <div class="mt-auto">
                 <a href="#" class="nav-link">
@@ -396,23 +392,22 @@
         <div class="container-fluid">
             <div
                 class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2 d-none d-lg-block">Public Health Midwife Dashboard </h1>
+                <h1 class="h2 d-none d-lg-block">Public Health Midwife Dashboard</h1>
                 <div class="btn-toolbar mb-2 mb-md-0">
                     <div class="btn-group me-2">
-
                     </div>
                 </div>
             </div>
 
             <!-- Stats Cards -->
             <div class="row mb-4">
-                <div class="col-6 col-md-3 mb-3 ">
+                <div class="col-6 col-md-3 mb-3">
                     <div class="card h-100" style="background-color: #0c7d89; color: #ffffff;">
                         <div class="card-body stats-card">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <h6 class="text-uppercase">Patients</h6>
-                                    <h4 class="mb-0">10</h4>
+                                    <h4 class="mb-0">{{ $totalPatients }}</h4>
                                 </div>
                                 <i class="fas fa-baby opacity-50"></i>
                             </div>
@@ -424,8 +419,8 @@
                         <div class="card-body stats-card">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <h6 class="text-uppercase">Appointments</h6>
-                                    <h4 class="mb-0">6</h4>
+                                    <h6 class="text-uppercase">Appointments ({{ date('F') }})</h6>
+                                    <h4 class="mb-0">{{ $monthlyAppointments }}</h4>
                                 </div>
                                 <i class="fas fa-calendar-check opacity-50"></i>
                             </div>
@@ -437,8 +432,8 @@
                         <div class="card-body stats-card">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <h6 class="text-uppercase">Vaccinations</h6>
-                                    <h4 class="mb-0">2</h4>
+                                    <h6 class="text-uppercase">Vaccinations ({{ date('F') }})</h6>
+                                    <h4 class="mb-0">{{ $monthlyVaccinations }}</h4>
                                 </div>
                                 <i class="fas fa-syringe opacity-50"></i>
                             </div>
@@ -450,8 +445,8 @@
                         <div class="card-body stats-card">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <h6 class="text-uppercase">Activities</h6>
-                                    <h4 class="mb-0">6</h4>
+                                    <h6 class="text-uppercase">Activities ({{ date('F') }})</h6>
+                                    <h4 class="mb-0">{{ $monthlyAppointments + $monthlyVaccinations }}</h4>
                                 </div>
                                 <i class="fas fa-tasks opacity-50"></i>
                             </div>
@@ -459,11 +454,10 @@
                     </div>
                 </div>
             </div>
-
             <div class="row">
                 <!-- Upcoming Vaccinations -->
-                <div class="col-lg-6 mb-4 ">
-                    <div class="card h-100 "style="background-color: #D6F0E8; color: #333;">
+                <div class="col-lg-6 mb-4">
+                    <div class="card h-100" style="background-color: #D6F0E8; color: #333;">
                         <div class="card-header bg-dark text-white">
                             <h5 class="mb-0">Upcoming Vaccinations</h5>
                         </div>
@@ -508,7 +502,7 @@
 
                 <!-- Upcoming Appointments -->
                 <div class="col-lg-6 mb-4">
-                    <div class="card h-100 " style="background-color: #D6F0E8; color: #333;">
+                    <div class="card h-100" style="background-color: #D6F0E8; color: #333;">
                         <div class="card-header bg-dark text-white">
                             <h5 class="mb-0">Upcoming Appointments</h5>
                         </div>
@@ -632,15 +626,12 @@
                                     <strong>👉🏻 Clinic:</strong> Colombo Central Clinic
                                 </li>
                                 <li class="mb-2"><strong>👉🏻 Area:</strong> Colombo 05</li>
-
                                 <li class="mb-2">
                                     <strong>👉🏻 Email:</strong> jane.doe@health.gov.lk
                                 </li>
                             </ul>
                         </div>
                     </div>
-
-
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
