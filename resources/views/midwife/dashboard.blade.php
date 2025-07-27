@@ -231,6 +231,35 @@
             padding-left: 100px;
         }
 
+        /* Patient Name Display */
+        .patient-name {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .baby-name {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--dark-blue);
+        }
+
+        .mother-name {
+            font-size: 0.9rem;
+            color: #666;
+            font-style: italic;
+        }
+
+        .baby-icon {
+            color: #ff69b4;
+            margin-right: 5px;
+        }
+
+        .mother-icon {
+            color: #8e44ad;
+            margin-right: 5px;
+        }
+
         /* Responsive Adjustments */
         @media (max-width: 992px) {
             .card-body {
@@ -462,40 +491,76 @@
                             <h5 class="mb-0">Upcoming Vaccinations</h5>
                         </div>
                         <div class="card-body">
-                            <div class="vaccination-item">
-                                <div class="vaccination-name">sandunika - MMR Vaccine</div>
-                                <div class="vaccination-details">
-                                    2nd dose | Last given: 3 months ago
+                            @if ($upcomingVaccinations->count() > 0)
+                                @foreach ($upcomingVaccinations->take(4) as $vaccination)
+                                    <div class="vaccination-item">
+                                        <div class="patient-name">
+                                            @if ($vaccination->patient && $vaccination->patient->baby_name)
+                                                <!-- Display baby name prominently with baby icon -->
+                                                <div class="baby-name">
+                                                    <i
+                                                        class="fas fa-baby baby-icon"></i>{{ $vaccination->patient->baby_name }}
+                                                </div>
+                                                <!-- Display mother's name below in smaller text -->
+                                                <div class="mother-name">
+                                                    <i class="fas fa-female mother-icon"></i>Mother:
+                                                    {{ $vaccination->patient->name ?? 'Unknown' }}
+                                                </div>
+                                            @else
+                                                <!-- For pregnant women or cases without baby name -->
+                                                <div class="vaccination-name">
+                                                    <i
+                                                        class="fas fa-female mother-icon"></i>{{ $vaccination->patient->name ?? 'Unknown Patient' }}
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <div class="vaccination-details">
+                                            <strong>{{ $vaccination->vaccine_type ?? 'Vaccination' }}</strong>
+                                            @if ($vaccination->dose)
+                                                - {{ $vaccination->dose }}
+                                            @endif
+                                            @if ($vaccination->notes)
+                                                | {{ $vaccination->notes }}
+                                            @endif
+                                        </div>
+                                        <div class="vaccination-meta">
+                                            <i class="fas fa-calendar"></i> Date:
+                                            {{ \Carbon\Carbon::parse($vaccination->date)->format('d/m/Y') }} |
+                                            <i class="fas fa-clock"></i> Time: {{ $vaccination->time ?? 'TBD' }}
+                                            @if ($vaccination->patient && $vaccination->patient->mother_contact)
+                                                | <i class="fas fa-phone"></i> Contact:
+                                                {{ $vaccination->patient->mother_contact }}
+                                            @endif
+                                        </div>
+                                        <div
+                                            class="due-date
+                            @if (\Carbon\Carbon::parse($vaccination->date)->isToday()) due-today
+                            @elseif(\Carbon\Carbon::parse($vaccination->date)->isTomorrow())
+                                due-tomorrow
+                            @elseif(\Carbon\Carbon::parse($vaccination->date)->diffInDays() <= 3)
+                                due-soon @endif">
+                                            @if (\Carbon\Carbon::parse($vaccination->date)->isToday())
+                                                Due Today
+                                            @elseif(\Carbon\Carbon::parse($vaccination->date)->isTomorrow())
+                                                Due Tomorrow
+                                            @else
+                                                Due in {{ \Carbon\Carbon::parse($vaccination->date)->diffInDays() }}
+                                                days
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endforeach
+                            @else
+                                <div class="text-center py-4">
+                                    <i class="fas fa-syringe fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">No upcoming vaccinations scheduled</p>
                                 </div>
-                                <div class="vaccination-meta">
-                                    Mother: kumari | Contact: 0752469722
-                                </div>
-                                <div class="due-date due-tomorrow">Due tomorrow</div>
-                            </div>
+                            @endif
 
-                            <div class="vaccination-item">
-                                <div class="vaccination-name">hasini ekanayake - Hepatitis B</div>
-                                <div class="vaccination-details">
-                                    3rd dose | Last given: 2 months ago
-                                </div>
-                                <div class="vaccination-meta">
-                                    Mother: thamara | Contact: 0772549863
-                                </div>
-                                <div class="due-date due-soon">Due in 3 days</div>
-                            </div>
-
-                            <div class="vaccination-item">
-                                <div class="vaccination-name">sara - DTaP</div>
-                                <div class="vaccination-details">
-                                    3rd dose | Last given: 4 months ago
-                                </div>
-                                <div class="vaccination-meta">
-                                    Mother: akalanka wijerathne | Contact: 555-9012
-                                </div>
-                                <div class="due-date">Due in 5 days</div>
-                            </div>
-
-                            <a href="#" class="btn btn-outline-success w-100 mt-2">View All Vaccinations</a>
+                            <a href="{{ route('vaccination_alerts.index') }}"
+                                class="btn btn-outline-success w-100 mt-2">
+                                View All Vaccinations
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -507,43 +572,68 @@
                             <h5 class="mb-0">Upcoming Appointments</h5>
                         </div>
                         <div class="card-body">
-                            <div class="appointment-item">
-                                <div class="appointment-name">Kamala Herath</div>
-                                <div class="appointment-details">Antenatal Checkup</div>
-                                <div class="appointment-meta">
-                                    <strong>Tomorrow 9:00 AM</strong> | At Home Visit
+                            @if ($upcomingAppointments->count() > 0)
+                                @foreach ($upcomingAppointments->take(4) as $appointment)
+                                    <div class="appointment-item">
+                                        <div class="patient-name">
+                                            @if ($appointment->patient && $appointment->patient->baby_name)
+                                                <!-- Display baby name prominently with baby icon -->
+                                                <div class="baby-name">
+                                                    <i
+                                                        class="fas fa-baby baby-icon"></i>{{ $appointment->patient->baby_name }}
+                                                </div>
+                                                <!-- Display mother's name below in smaller text -->
+                                                <div class="mother-name">
+                                                    <i class="fas fa-female mother-icon"></i>Mother:
+                                                    {{ $appointment->patient->name ?? 'Unknown' }}
+                                                </div>
+                                            @else
+                                                <!-- For pregnant women or cases without baby name -->
+                                                <div class="appointment-name">
+                                                    <i
+                                                        class="fas fa-female mother-icon"></i>{{ $appointment->patient->name ?? 'Unknown Patient' }}
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <div class="appointment-details">
+                                            <strong>{{ ucfirst($appointment->type) ?? 'Health Checkup' }}</strong>
+                                            @if ($appointment->notes)
+                                                - {{ $appointment->notes }}
+                                            @endif
+                                        </div>
+                                        <div class="appointment-meta">
+                                            <i class="fas fa-calendar-check"></i>
+                                            <strong>
+                                                @if (\Carbon\Carbon::parse($appointment->date)->isToday())
+                                                    Today {{ $appointment->time ?? 'TBD' }}
+                                                @elseif(\Carbon\Carbon::parse($appointment->date)->isTomorrow())
+                                                    Tomorrow {{ $appointment->time ?? 'TBD' }}
+                                                @else
+                                                    {{ \Carbon\Carbon::parse($appointment->date)->format('d/m/Y') }}
+                                                    {{ $appointment->time ?? 'TBD' }}
+                                                @endif
+                                            </strong>
+                                            @if ($appointment->location)
+                                                | <i class="fas fa-map-marker-alt"></i> {{ $appointment->location }}
+                                            @else
+                                                | <i class="fas fa-hospital"></i> At Clinic
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endforeach
+                            @else
+                                <div class="text-center py-4">
+                                    <i class="fas fa-calendar-check fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">No upcoming appointments scheduled</p>
                                 </div>
-                            </div>
+                            @endif
 
-                            <div class="appointment-item">
-                                <div class="appointment-name">Dinuka Herath</div>
-                                <div class="appointment-details">4 Month Vaccination</div>
-                                <div class="appointment-meta">
-                                    <strong>12/06 10:30 AM</strong> | At Clinic
-                                </div>
-                            </div>
-
-                            <div class="appointment-item">
-                                <div class="appointment-name">Community Meeting</div>
-                                <div class="appointment-details">Nutrition Awareness</div>
-                                <div class="appointment-meta">
-                                    <strong>14/06 2:00 PM</strong> | At Community Hall
-                                </div>
-                            </div>
-
-                            <div class="appointment-item">
-                                <div class="appointment-name">Thriposha Distribution</div>
-                                <div class="appointment-details">Monthly Allocation</div>
-                                <div class="appointment-meta">
-                                    <strong>15/06 9:00 AM</strong> | At PHM Office
-                                </div>
-                            </div>
-
-                            <a href="#" class="btn btn-outline-primary w-100 mt-2">View All Appointments</a>
+                            <a href="{{ route('midwife.appointments') }}" class="btn btn-outline-primary w-100 mt-2">
+                                View All Appointments
+                            </a>
                         </div>
                     </div>
                 </div>
-
                 <!-- Recent Activities -->
                 <div class="col-lg-12 mb-4">
                     <div class="card h-100" style="background-color: #D6F0E8; color: #333;">
@@ -688,6 +778,8 @@
             }
         });
     </script>
+
+
 </body>
 
 </html>

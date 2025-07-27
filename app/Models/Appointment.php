@@ -16,7 +16,7 @@ class Appointment extends Model
         'vaccination_type',
         'notes',
         'status',
-        
+
     ];
 
     public function midwife()
@@ -32,6 +32,7 @@ public function patient()
     }
     return $this->belongsTo(PregnantWoman::class, 'patient_id');
             return $this->morphTo(null, 'patient_type', 'patient_id');
+    return $this->belongsTo(Patient::class);
 
 }
 

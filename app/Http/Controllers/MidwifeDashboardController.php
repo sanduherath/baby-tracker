@@ -17,39 +17,36 @@ class MidwifeDashboardController extends Controller
      */
     public function index()
     {
-        // Step 1: Get the authenticated user's email
+        // Debug Auth issues
+        Log::info('=== AUTH DEBUGGING ===');
+        Log::info('Auth::check(): ' . (Auth::check() ? 'true' : 'false'));
+        Log::info('Auth::id(): ' . (Auth::id() ?? 'NULL'));
+
+        if (Auth::check()) {
+            $user = Auth::user();
+            Log::info('User exists: ' . ($user ? 'true' : 'false'));
+            if ($user) {
+                Log::info('User ID: ' . $user->id);
+                Log::info('User Email: ' . ($user->email ?? 'NULL'));
+                Log::info('User Name: ' . ($user->name ?? 'NULL'));
+                Log::info('User object: ' . json_encode($user));
+            }
+        } else {
+            Log::info('User is not authenticated');
+            // Redirect to login or handle unauthenticated user
+            return redirect()->route('login')->with('error', 'Please login first');
+        }
+
+        // Step 1: Get the authenticated user's email from users table
         $userEmail = Auth::user()->email;
 
-        // Debug: Check what emails exist in midwives table
-        $allMidwifeEmails = DB::table('midwives')->pluck('email')->toArray();
-        Log::info('=== DEBUGGING EMAIL MATCH ===');
-        Log::info('User Email: "' . $userEmail . '"');
-        Log::info('User Email Length: ' . strlen($userEmail));
-        Log::info('All Midwife Emails: ' . json_encode($allMidwifeEmails));
-
-        // Check if midwives table has any records at all
-        $midwifeCount = DB::table('midwives')->count();
-        Log::info('Total midwives in table: ' . $midwifeCount);
-
-        // Try exact match with debugging
-        $exactMatch = DB::table('midwives')
-            ->where('email', '=', $userEmail)
-            ->first();
-        Log::info('Exact match result: ' . ($exactMatch ? json_encode($exactMatch) : 'NULL'));
-
-        // Try case-insensitive match
-        $caseInsensitiveMatch = DB::table('midwives')
-            ->whereRaw('LOWER(email) = LOWER(?)', [$userEmail])
-            ->first();
-        Log::info('Case insensitive match: ' . ($caseInsensitiveMatch ? json_encode($caseInsensitiveMatch) : 'NULL'));
-
-        // Step 2: Get midwife ID
+        // Step 2: Find the midwife record with matching email and get that midwife's ID
         $midwifeId = DB::table('midwives')
             ->where('email', $userEmail)
             ->value('id');
 
         Log::info('Final Midwife ID: ' . ($midwifeId ?? 'NULL'));
-        Log::info('=== END DEBUGGING ===');
+        Log::info('=== END AUTH DEBUGGING ===');
 
         if (!$midwifeId) {
             // Handle case where no midwife record exists
@@ -57,6 +54,8 @@ class MidwifeDashboardController extends Controller
             $totalPatients = 0;
             $monthlyAppointments = 0;
             $monthlyVaccinations = 0;
+            $upcomingVaccinations = collect([]);
+            $upcomingAppointments = collect([]);
         } else {
             // Fetch total patients registered under the midwife from the patients table
             $totalPatients = DB::table('patients')->where('midwife_id', $midwifeId)->count();
@@ -74,9 +73,67 @@ class MidwifeDashboardController extends Controller
                 ->whereYear('date', Carbon::now()->year)
                 ->whereMonth('date', Carbon::now()->month)
                 ->count();
+
+            // Fetch upcoming vaccination details (future vaccination appointments)
+            // WITH DETAILED PATIENT INFORMATION INCLUDING BABY NAMES
+            $upcomingVaccinations = Appointment::where('midwife_id', $midwifeId)
+                ->where('type', 'vaccination')
+                ->where('date', '>=', Carbon::now()->toDateString())
+                ->orderBy('date', 'asc')
+                ->orderBy('time', 'asc')
+                ->with(['patient' => function($query) {
+                    // Select all patient columns to ensure we get baby_name
+                    $query->select('*');
+                }])
+                ->get();
+
+            // Debug vaccination data
+            Log::info('=== VACCINATION DEBUGGING ===');
+            Log::info('Upcoming vaccinations count: ' . $upcomingVaccinations->count());
+            foreach ($upcomingVaccinations as $index => $vaccination) {
+                Log::info("Vaccination {$index}:");
+                Log::info('- ID: ' . $vaccination->id);
+                Log::info('- Patient ID: ' . ($vaccination->patient_id ?? 'NULL'));
+                Log::info('- Has Patient: ' . ($vaccination->patient ? 'YES' : 'NO'));
+                if ($vaccination->patient) {
+                    Log::info('- Patient Name: ' . ($vaccination->patient->name ?? 'NULL'));
+                    Log::info('- Baby Name: ' . ($vaccination->patient->baby_name ?? 'NULL'));
+                    Log::info('- Patient Data: ' . json_encode($vaccination->patient->toArray()));
+                }
+            }
+            Log::info('=== END VACCINATION DEBUGGING ===');
+
+            // Fetch upcoming appointments (health checkups and other appointments)
+            // WITH DETAILED PATIENT INFORMATION INCLUDING BABY NAMES
+            $upcomingAppointments = Appointment::where('midwife_id', $midwifeId)
+                ->where('type', '!=', 'vaccination') // Exclude vaccinations
+                ->where('date', '>=', Carbon::now()->toDateString())
+                ->orderBy('date', 'asc')
+                ->orderBy('time', 'asc')
+                ->with(['patient' => function($query) {
+                    // Select all patient columns to ensure we get baby_name
+                    $query->select('*');
+                }])
+                ->get();
+
+            // Debug appointment data
+            Log::info('=== APPOINTMENT DEBUGGING ===');
+            Log::info('Upcoming appointments count: ' . $upcomingAppointments->count());
+            foreach ($upcomingAppointments as $index => $appointment) {
+                Log::info("Appointment {$index}:");
+                Log::info('- ID: ' . $appointment->id);
+                Log::info('- Patient ID: ' . ($appointment->patient_id ?? 'NULL'));
+                Log::info('- Has Patient: ' . ($appointment->patient ? 'YES' : 'NO'));
+                if ($appointment->patient) {
+                    Log::info('- Patient Name: ' . ($appointment->patient->name ?? 'NULL'));
+                    Log::info('- Baby Name: ' . ($appointment->patient->baby_name ?? 'NULL'));
+                    Log::info('- Patient Data: ' . json_encode($appointment->patient->toArray()));
+                }
+            }
+            Log::info('=== END APPOINTMENT DEBUGGING ===');
         }
 
         // Pass data to the view
-        return view('midwife.dashboard', compact('totalPatients', 'monthlyAppointments', 'monthlyVaccinations'));
+        return view('midwife.dashboard', compact('totalPatients', 'monthlyAppointments', 'monthlyVaccinations', 'upcomingVaccinations', 'upcomingAppointments'));
     }
 }
