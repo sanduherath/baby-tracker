@@ -380,7 +380,7 @@
 
             </ul>
             <div class="mt-auto">
-                <a href="{{ route('logout') }}" class="nav-link">
+                <a href="" class="nav-link">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </a>
             </div>
