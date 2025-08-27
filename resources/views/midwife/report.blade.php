@@ -1,780 +1,815 @@
+<?php
+/**
+ * Blade template for the Report Generator interface, displaying dynamic data from the babies and reports tables.
+ */
+?>
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Advanced Reports | Midwife Dashboard</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
+    <title>Report Generator | Baby Tracking System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-      :root {
-        --teal: #2b7c85;
-        --teal-dark: #175873;
-        --teal-light: #87aca3;
-        --navy: #0c1446;
-        --gradient-start: #2b7c85;
-        --gradient-end: #2b7c85;
-      }
+        :root {
+            --teal: #2b7c85;
+            --teal-dark: #175873;
+            --teal-light: #87aca3;
+            --navy: #0c1446;
+            --gradient-start: #2b7c85;
+            --gradient-end: #2b7c85;
+            --primary-blue: #13646d;
+            --secondary-blue: #4285f4;
+            --light-blue: #e8f0fe;
+            --dark-blue: #0c2d48;
+            --accent-blue: #8ab4f8;
+            --sidebar-width: 250px;
+        }
 
-      body {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #f8f9fa;
-      }
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
 
-      /* Top Navigation Bar */
-      .top-bar {
-        background: linear-gradient(
-          135deg,
-          var(--gradient-start),
-          var(--gradient-end)
-        );
-        color: white;
-        padding: 15px 0;
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background: var(--primary-blue);
+            transition: all 0.3s;
+            z-index: 1000;
+            overflow-y: auto;
+        }
 
-      .back-btn {
-        background-color: rgba(255, 255, 255, 0.2);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        padding: 8px 15px;
-        font-size: 14px;
-        transition: all 0.3s;
-        display: inline-flex;
-        align-items: center;
-      }
+        .midphoto {
+            height: 80px;
+            width: 80px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
 
-      .back-btn:hover {
-        background-color: rgba(255, 255, 255, 0.3);
-        transform: translateX(-3px);
-      }
+        .midphoto:hover {
+            transform: scale(1.05);
+        }
 
-      .back-btn i {
-        margin-right: 6px;
-      }
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 5px;
+            border-radius: 5px;
+            padding: 10px 15px;
+            transition: all 0.2s;
+        }
 
-      /* Main Content */
-      .main-content {
-        padding: 25px;
-        max-width: 1400px;
-        margin: 0 auto;
-      }
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
 
-      /* Report Configuration Panel */
-      .config-panel {
-        background-color: white;
-        border-radius: 8px;
-        padding: 20px;
-        margin-bottom: 20px;
-        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
-      }
+        .sidebar .nav-link i {
+            width: 20px;
+            text-align: center;
+            margin-right: 10px;
+            font-size: 1.1rem;
+        }
 
-      .config-title {
-        font-size: 18px;
-        font-weight: 600;
-        color: var(--navy);
-        margin-bottom: 20px;
-      }
+        .mobile-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue) 100%);
+            color: white;
+            z-index: 900;
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
 
-      /* Report Cards */
-      .report-card {
-        background-color: white;
-        border-radius: 8px;
-        padding: 20px;
-        margin-bottom: 20px;
-        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
-      }
+        .menu-toggle {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            margin-right: 15px;
+            padding: 5px 10px;
+        }
 
-      .report-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-        padding-bottom: 15px;
-        border-bottom: 1px solid #eee;
-      }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
 
-      .report-title {
-        font-size: 20px;
-        font-weight: 600;
-        color: var(--navy);
-        margin-bottom: 0;
-      }
+        .main-content {
+            margin-left: var(--sidebar-width);
+            transition: all 0.3s;
+            min-height: 100vh;
+        }
 
-      .report-period {
-        color: #6c757d;
-        font-size: 14px;
-      }
-
-      /* Progress Cards */
-      .progress-card {
-        background-color: white;
-        border-radius: 8px;
-        padding: 15px;
-        margin-bottom: 15px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        border-left: 4px solid var(--teal);
-      }
-
-      .progress-header {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 10px;
-      }
-
-      .progress-title {
-        font-weight: 600;
-        color: var(--navy);
-      }
-
-      .progress-value {
-        font-weight: 700;
-      }
-
-      .progress-completed {
-        color: #28a745;
-      }
-
-      .progress-pending {
-        color: #ffc107;
-      }
-
-      .progress-bar-container {
-        height: 8px;
-        background-color: #e9ecef;
-        border-radius: 4px;
-        margin-bottom: 5px;
-      }
-
-      .progress-bar-fill {
-        height: 100%;
-        border-radius: 4px;
-        background-color: var(--teal);
-      }
-
-      .progress-details {
-        display: flex;
-        justify-content: space-between;
-        font-size: 12px;
-        color: #6c757d;
-      }
-
-      /* Charts */
-      .chart-container {
-        background-color: white;
-        border-radius: 8px;
-        padding: 20px;
-        margin-bottom: 20px;
-        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
-        height: 100%;
-      }
-
-      .chart-title {
-        color: var(--teal-dark);
-        font-weight: 600;
-        margin-bottom: 15px;
-      }
-
-      /* Target Indicators */
-      .target-indicator {
-        display: flex;
-        align-items: center;
-        margin-bottom: 8px;
-      }
-
-      .target-status {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        margin-right: 8px;
-      }
-
-      .status-achieved {
-        background-color: #28a745;
-      }
-
-      .status-partial {
-        background-color: #ffc107;
-      }
-
-      .status-missed {
-        background-color: #dc3545;
-      }
-
-      /* Report Tables */
-      .report-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-      }
-
-      .report-table th {
-        background-color: var(--teal);
-        color: white;
-        padding: 12px 15px;
-        text-align: left;
-      }
-
-      .report-table td {
-        padding: 12px 15px;
-        border-bottom: 1px solid #eee;
-        vertical-align: middle;
-      }
-
-      .report-table tr:hover td {
-        background-color: #f8f9fa;
-      }
-.arrow a{
-  text-decoration: none;
-}
-      /* Mobile Optimizations */
-      @media (max-width: 768px) {
         .top-bar {
-          padding: 12px 0;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            color: white;
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .back-btn {
-          padding: 6px 12px;
-          font-size: 13px;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 15px;
+            font-size: 14px;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
         }
 
-        .report-header {
-          flex-direction: column;
-          align-items: flex-start;
+        .back-btn:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            transform: translateX(-3px);
         }
 
-        .report-period {
-          margin-top: 5px;
+        .back-btn i {
+            margin-right: 6px;
         }
 
-        .report-table th,
-        .report-table td {
-          padding: 8px 10px;
-          font-size: 14px;
+        .search-box {
+            max-width: 300px;
+            border-radius: 8px;
+            border: none;
+            padding: 8px 15px;
+            background-color: rgba(255, 255, 255, 0.636);
+            color: white;
+            transition: all 0.3s;
         }
-      }
+
+        .search-box:focus {
+            background-color: rgba(255, 255, 255, 0.3);
+            color: white;
+            box-shadow: none;
+        }
+
+        .search-box::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .search-btn {
+            color: rgba(255, 255, 255, 0.7);
+            border: none;
+            background: transparent;
+        }
+
+        .content-area {
+            padding: 25px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .nav-pills .nav-link {
+            color: var(--navy);
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 20px;
+            margin-right: 8px;
+        }
+
+        .nav-pills .nav-link.active {
+            background-color: var(--teal);
+            color: white;
+        }
+
+        .report-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+            border-top: 4px solid var(--teal);
+        }
+
+        .report-card h5 {
+            color: var(--teal-dark);
+            margin-bottom: 15px;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.05);
+            margin-bottom: 15px;
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--navy);
+        }
+
+        .stat-label {
+            font-size: 16px;
+            color: #6c757d;
+        }
+
+        .filter-section {
+            background-color: var(--light-blue);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .preview-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+            min-height: 400px;
+        }
+
+        .growth-chart-container {
+            height: 250px;
+            margin-top: 20px;
+        }
+
+        .highlight {
+            background-color: var(--light-blue);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding-top: 80px;
+            }
+
+            .mobile-header {
+                display: flex;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .top-bar {
+                padding: 12px 0;
+            }
+
+            .back-btn {
+                padding: 6px 12px;
+                font-size: 13px;
+            }
+
+            .search-box {
+                max-width: 200px;
+                padding: 6px 12px;
+            }
+
+            .nav-pills {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                padding-bottom: 8px;
+            }
+
+            .nav-pills .nav-link {
+                white-space: nowrap;
+                font-size: 14px;
+                padding: 6px 12px;
+            }
+
+            .report-card {
+                padding: 15px;
+            }
+
+            .stat-number {
+                font-size: 24px;
+            }
+        }
     </style>
-  </head>
-  <body>
-    <!-- Top Navigation Bar -->
-    <div class="top-bar">
-      <div class="container-fluid">
-        <div class="d-flex justify-content-between align-items-center">
-          <div class="d-flex align-items-center arrow">
-            <a href="dash.html" class="back-btn me-3">
-              <i class="fa-solid fa-arrow-left"></i>
-            </a>
-            <h5 class="mb-0 d-none d-md-block text-white">
-              Advanced Reporting
-            </h5>
-          </div>
+</head>
+<body>
+    <!-- Mobile Header -->
+    <div class="mobile-header d-lg-none">
+        <button class="menu-toggle" id="menuToggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        <h5 class="mb-0">Report Generator</h5>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="d-flex flex-column p-3 text-white" style="height: 100%">
+            <div class="text-center mb-4 mt-3 d-none d-lg-block">
+                <img src="" class="rounded-circle mb-2 midphoto" alt="Profile" id="profileImage"
+                    data-bs-toggle="modal" data-bs-target="#profileModal" />
+                <h5>{{ Auth::user()->midwife->name ?? 'Midwife Name' }}</h5>
+                <small class="text-white-50">Registered Midwife</small>
+            </div>
+            <ul class="nav nav-pills flex-column mb-auto">
+                <li class="nav-item">
+                    <a href="{{ route('midwife.dashboard') }}" class="nav-link"style="color:white">
+                        <i class="fas fa-home"></i> Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('midwife.patients') }}" class="nav-link"style="color:white">
+                        <i class="fas fa-baby"></i> My Patients
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('midwife.appointments') }}" class="nav-link "style="color:white">
+                        <i class="fas fa-calendar-check"></i> Appointments
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('thriposha.distribution') }}" class="nav-link"style="color:white">
+                        <i class="fas fa-utensils"></i> Nutrition
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('vaccination_alerts.index') }}" class="nav-link"style="color:white">
+                        <i class="fas fa-bell"></i> Alerts
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('reports.index') }}" class="nav-link active" style="color:white">
+                        <i class="fas fa-file-medical"></i> Reports
+                    </a>
+                </li>
+            </ul>
+            <div class="mt-auto">
+                <a href="" class="nav-link">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
         </div>
-      </div>
     </div>
 
     <!-- Main Content -->
-    <div class="main-content">
-      <!-- Report Configuration -->
-      <div class="config-panel">
-        <h5 class="config-title">Generate Custom Report</h5>
-        <form id="reportConfigForm">
-          <div class="row g-3">
-            <div class="col-md-4">
-              <label class="form-label">Report Type</label>
-              <select class="form-select" id="reportType" required>
-                <option value="">Select report type</option>
-                <option value="performance">Performance Report</option>
-                <option value="clinical">Clinical Activity Report</option>
-                <option value="vaccination">Vaccination Report</option>
-                <option value="nutrition">Nutrition Report</option>
-                <option value="targets">Target Achievement Report</option>
-                <option value="custom">Custom Report</option>
-              </select>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">Time Period</label>
-              <select class="form-select" id="timePeriod" required>
-                <option value="week">Weekly</option>
-                <option value="month" selected>Monthly</option>
-                <option value="quarter">Quarterly</option>
-                <option value="year">Annual</option>
-                <option value="custom">Custom Range</option>
-              </select>
-            </div>
-            <div class="col-md-4" id="customDateRange" style="display: none">
-              <label class="form-label">Date Range</label>
-              <div class="input-group">
-                <input type="date" class="form-control" id="startDate" />
-                <span class="input-group-text">to</span>
-                <input type="date" class="form-control" id="endDate" />
-              </div>
-            </div>
-          </div>
-          <div class="row g-3 mt-2" id="reportOptions" style="display: none">
-            <div class="col-md-12">
-              <label class="form-label">Report Options</label>
-              <div class="form-check">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  id="optVaccinations"
-                />
-                <label class="form-check-label" for="optVaccinations">
-                  Include Vaccination Data
-                </label>
-              </div>
-              <div class="form-check">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  id="optNutrition"
-                />
-                <label class="form-check-label" for="optNutrition">
-                  Include Nutrition Data
-                </label>
-              </div>
-              <div class="form-check">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  id="optVisits"
-                />
-                <label class="form-check-label" for="optVisits">
-                  Include Visit Statistics
-                </label>
-              </div>
-              <div class="form-check">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  id="optTargets"
-                />
-                <label class="form-check-label" for="optTargets">
-                  Include Target Progress
-                </label>
-              </div>
-            </div>
-          </div>
-          <button type="submit" class="btn btn-primary mt-3">
-            <i class="fas fa-chart-bar me-1"></i> Generate Report
-          </button>
-        </form>
-      </div>
-
-      <!-- Generated Report View -->
-      <div id="generatedReport">
-        <!-- Report Header -->
-        <div class="report-card">
-          <div class="report-header">
-            <h1 class="report-title" id="dynamicReportTitle">
-              Monthly Performance Report
-            </h1>
-            <div class="report-period" id="reportDateRange">
-              June 1 - 30, 2023
-            </div>
-          </div>
-
-          <!-- Progress Summary -->
-          <div class="row mb-4">
-            <div class="col-md-6">
-              <h5 class="chart-title">Monthly Progress</h5>
-              <div class="progress-card">
-                <div class="progress-header">
-                  <span class="progress-title">Vaccination Target</span>
-                  <span class="progress-value progress-completed">92%</span>
+    <div class="main-content" id="mainContent">
+        <!-- Top Navigation Bar -->
+        <div class="top-bar">
+            <div class="container-fluid">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center arrow">
+                        <a href="{{ url()->previous() }}" class="back-btn me-3">
+                            <i class="fa-solid fa-arrow-left"></i>
+                        </a>
+                        <h5 class="mb-0 d-none d-md-block text-white">
+                            Report Generator
+                        </h5>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <form action="{{ route('reports.index') }}" method="GET">
+                            <div class="input-group search-box me-3">
+                                <input type="text" name="search" class="form-control bg-transparent border-0" placeholder="Search reports..." value="{{ request('search') }}" />
+                                <button class="btn search-btn" type="submit">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-                <div class="progress-bar-container">
-                  <div class="progress-bar-fill" style="width: 92%"></div>
-                </div>
-                <div class="progress-details">
-                  <span>24/26 babies vaccinated</span>
-                  <span>Target: 100%</span>
-                </div>
-              </div>
-              <div class="progress-card">
-                <div class="progress-header">
-                  <span class="progress-title">Prenatal Visits</span>
-                  <span class="progress-value progress-completed">100%</span>
-                </div>
-                <div class="progress-bar-container">
-                  <div class="progress-bar-fill" style="width: 100%"></div>
-                </div>
-                <div class="progress-details">
-                  <span>18/18 mothers attended</span>
-                  <span>Target: 95%</span>
-                </div>
-              </div>
             </div>
-            <div class="col-md-6">
-              <h5 class="chart-title">Target Achievement</h5>
-              <div class="target-indicator">
-                <span class="target-status status-achieved"></span>
-                <span>Vaccination coverage (Exceeded target by 7%)</span>
-              </div>
-              <div class="target-indicator">
-                <span class="target-status status-achieved"></span>
-                <span>Prenatal care visits (100% completed)</span>
-              </div>
-              <div class="target-indicator">
-                <span class="target-status status-partial"></span>
-                <span>Thriposha distribution (85% of target)</span>
-              </div>
-              <div class="target-indicator">
-                <span class="target-status status-missed"></span>
-                <span>Field visits (12/15 completed)</span>
-              </div>
-              <div class="target-indicator">
-                <span class="target-status status-achieved"></span>
-                <span>Newborn registrations (8/8 target)</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Charts Row -->
-          <div class="row mb-4">
-            <div class="col-lg-6">
-              <div class="chart-container">
-                <h5 class="chart-title">Weekly Activity Breakdown</h5>
-                <canvas id="activityChart"></canvas>
-              </div>
-            </div>
-            <div class="col-lg-6">
-              <div class="chart-container">
-                <h5 class="chart-title">Target Achievement</h5>
-                <canvas id="targetsChart"></canvas>
-              </div>
-            </div>
-          </div>
-
-          <!-- Detailed Reports -->
-          <div class="row">
-            <div class="col-lg-6">
-              <div class="report-card">
-                <h5 class="chart-title">Activity Summary</h5>
-                <div class="table-responsive">
-                  <table class="report-table">
-                    <thead>
-                      <tr>
-                        <th>Activity</th>
-                        <th>Count</th>
-                        <th>Target</th>
-                        <th>Progress</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>Clinic Days</td>
-                        <td>18</td>
-                        <td>20</td>
-                        <td>
-                          <div class="progress" style="height: 8px">
-                            <div
-                              class="progress-bar bg-warning"
-                              style="width: 90%"
-                            ></div>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>Field Visits</td>
-                        <td>12</td>
-                        <td>15</td>
-                        <td>
-                          <div class="progress" style="height: 8px">
-                            <div
-                              class="progress-bar bg-danger"
-                              style="width: 80%"
-                            ></div>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>Baby Checkups</td>
-                        <td>42</td>
-                        <td>45</td>
-                        <td>
-                          <div class="progress" style="height: 8px">
-                            <div
-                              class="progress-bar bg-success"
-                              style="width: 93%"
-                            ></div>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>Prenatal Visits</td>
-                        <td>18</td>
-                        <td>18</td>
-                        <td>
-                          <div class="progress" style="height: 8px">
-                            <div
-                              class="progress-bar bg-success"
-                              style="width: 100%"
-                            ></div>
-                          </div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-            <div class="col-lg-6">
-              <div class="report-card">
-                <h5 class="chart-title">Performance Metrics</h5>
-                <div class="table-responsive">
-                  <table class="report-table">
-                    <thead>
-                      <tr>
-                        <th>Metric</th>
-                        <th>This Period</th>
-                        <th>Last Period</th>
-                        <th>Change</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>New Registrations</td>
-                        <td>8</td>
-                        <td>7</td>
-                        <td class="text-success">
-                          +14% <i class="fas fa-arrow-up"></i>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>Vaccinations</td>
-                        <td>25</td>
-                        <td>22</td>
-                        <td class="text-success">
-                          +14% <i class="fas fa-arrow-up"></i>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>Thriposha Distributed</td>
-                        <td>42</td>
-                        <td>38</td>
-                        <td class="text-success">
-                          +11% <i class="fas fa-arrow-up"></i>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>High-Risk Cases</td>
-                        <td>4</td>
-                        <td>5</td>
-                        <td class="text-danger">
-                          -20% <i class="fas fa-arrow-down"></i>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Report Actions -->
-          <div class="report-card text-center">
-            <button class="btn btn-primary me-2" id="exportPdf">
-              <i class="fas fa-file-pdf me-1"></i> Export as PDF
-            </button>
-            <button class="btn btn-outline-secondary me-2" id="printReport">
-              <i class="fas fa-print me-1"></i> Print Report
-            </button>
-            <button class="btn btn-outline-primary" id="saveReport">
-              <i class="fas fa-save me-1"></i> Save Report
-            </button>
-          </div>
         </div>
-      </div>
+
+        <!-- Content Area -->
+        <div class="content-area">
+            @if (session('success'))
+                <div class="alert alert-success">{{ session('success') }}</div>
+            @endif
+
+            <!-- Stats Overview -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ $activeBabies }}</div>
+                        <div class="stat-label">Active Babies</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ $reportsGenerated }}</div>
+                        <div class="stat-label">Reports Generated</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ $dueCheckups }}</div>
+                        <div class="stat-label">Due Check-ups</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ $vaccinationsDue }}</div>
+                        <div class="stat-label">Vaccinations Due</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Report Tabs -->
+            <ul class="nav nav-pills mb-4">
+                <li class="nav-item">
+                    <button class="nav-link active" id="generate-tab">
+                        <i class="fas fa-file-medical me-1"></i> Generate Report
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="history-tab">
+                        <i class="fas fa-history me-1"></i> Report History
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Generate Report View (Default) -->
+            <div id="generateView">
+                <div class="row">
+                    <div class="col-lg-5">
+                        <!-- Filter Section -->
+                        <div class="report-card">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="mb-0">Report Filters</h5>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="resetFilters()">Clear All</button>
+                            </div>
+                            <div class="filter-section">
+                                <form action="{{ route('reports.generate') }}" method="POST" id="reportForm">
+                                    @csrf
+                                    <div class="mb-3">
+                                        <label class="form-label">Report Category</label>
+                                        <select class="form-select" name="report_category" id="reportCategory" onchange="toggleReportFields()">
+                                            <option value="">Select Category</option>
+                                            <option value="client_report">Client Report</option>
+                                            <option value="work_report">Work Report</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Client Report Fields -->
+                                    <div id="clientReportFields" style="display: none;">
+                                        <div class="mb-3">
+                                            <label class="form-label">Select Client</label>
+                                            <select class="form-select" name="baby_id">
+                                                <option value="">All Babies</option>
+                                                @foreach ($babies as $baby)
+                                                    <option value="{{ $baby->id }}" {{ $selectedBaby && $selectedBaby->id == $baby->id ? 'selected' : '' }}>
+                                                        {{ $baby->name }} ({{ $baby->age }} years)
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Data to Include</label>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="data[]" value="weight_height" checked>
+                                                <label class="form-check-label">Weight & Height</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="data[]" value="head_circumference" checked>
+                                                <label class="form-check-label">Head Circumference</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="data[]" value="vaccination_records">
+                                                <label class="form-check-label">Vaccination Records</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="data[]" value="feeding_data" checked>
+                                                <label class="form-check-label">Feeding Data</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="data[]" value="sleep_patterns">
+                                                <label class="form-check-label">Sleep Patterns</label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Work Report Fields -->
+                                    <div id="workReportFields" style="display: none;">
+                                        <div class="mb-3">
+                                            <label class="form-label">Report Type</label>
+                                            <select class="form-select" name="report_type">
+                                                <option value="appointment_report">Appointment Report</option>
+                                                <option value="vaccination_report">Vaccination Report</option>
+                                                <option value="health_checkup_report">Health Checkup Report</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Date From</label>
+                                        <input type="date" class="form-control" name="date_from" value="{{ \Carbon\Carbon::today()->subMonths(6)->format('Y-m-d') }}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Date To</label>
+                                        <input type="date" class="form-control" name="date_to" value="{{ \Carbon\Carbon::today()->format('Y-m-d') }}">
+                                    </div>
+
+                                    <div class="d-grid gap-2">
+                                        <button type="submit" class="btn btn-primary"><i class="fas fa-file-medical me-2"></i> Generate Report</button>
+                                        <button type="button" class="btn btn-outline-primary"><i class="fas fa-print me-2"></i> Print Preview</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Recent Reports -->
+                        <div class="report-card">
+                            <h5>Recent Reports</h5>
+                            <div class="list-group list-group-flush">
+                                @foreach ($recentReports as $report)
+                                    <a href="#" class="list-group-item list-group-item-action">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">{{ $report->file_path['baby_name'] ?? 'Unknown Baby' }} - {{ $report->report_type }}</h6>
+                                            <small>{{ \Carbon\Carbon::parse($report->generated_at)->diffForHumans() }}</small>
+                                        </div>
+                                        <small class="text-muted">Generated: {{ \Carbon\Carbon::parse($report->generated_at)->format('M d, Y') }}</small>
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-7">
+                        <!-- Report Preview -->
+                        @if ($selectedBaby)
+                            <div class="report-card">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="mb-0">Report Preview: {{ $selectedBaby->name }}</h5>
+                                    <div>
+                                        <button class="btn btn-sm btn-outline-secondary me-1"><i class="fas fa-download"></i></button>
+                                        <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-print"></i></button>
+                                    </div>
+                                </div>
+                                <div class="preview-container">
+                                    <div class="text-center mb-4">
+                                        <h4>Baby Growth Report</h4>
+                                        <p class="text-muted">For: {{ $selectedBaby->name }} | Born: {{ \Carbon\Carbon::parse($selectedBaby->birth_date)->format('M d, Y') }} | Report Period: {{ \Carbon\Carbon::today()->subMonths(6)->format('M d, Y') }} - {{ \Carbon\Carbon::today()->format('M d, Y') }}</p>
+                                        <hr>
+                                    </div>
+
+                                    <div class="row mb-4">
+                                        <div class="col-md-6">
+                                            <div class="highlight">
+                                                <h6>Vital Statistics</h6>
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="fw-bold">Current Weight</div>
+                                                        <div>{{ $reportData['weight'] }} kg</div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="fw-bold">Current Height</div>
+                                                        <div>{{ $reportData['height'] }} cm</div>
+                                                    </div>
+                                                </div>
+                                                <div class="row mt-2">
+                                                    <div class="col-6">
+                                                        <div class="fw-bold">Head Circumference</div>
+                                                        <div>{{ $reportData['head_circumference'] }} cm</div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="fw-bold">Latest Appointment</div>
+                                                        <div>{{ $reportData['latest_appointment'] }}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="highlight">
+                                                <h6>Recent Developments</h6>
+                                                <ul class="ps-3 mb-0">
+                                                    @if (!empty($reportData['milestones']))
+                                                        @foreach ($reportData['milestones'] as $milestone)
+                                                            <li>{{ $milestone }}</li>
+                                                        @endforeach
+                                                    @else
+                                                        <li>No milestones recorded</li>
+                                                    @endif
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-4">
+                                        <h6>Feeding Summary</h6>
+                                        <p class="mb-0">{{ $reportData['feeding_data'] }}</p>
+                                    </div>
+
+                                    <div class="mt-3">
+                                        <h6>Midwife Notes</h6>
+                                        <p class="mb-0">{{ $reportData['notes'] }}</p>
+                                        <p class="mt-2 mb-0">Dr. {{ $selectedBaby->midwife_name ?? 'Emily Johnson' }}, RN<br>{{ \Carbon\Carbon::today()->format('M d, Y') }}</p>
+                                    </div>
+
+                                    <h6>Growth Chart</h6>
+                                    <div class="growth-chart-container">
+                                        <canvas id="growthChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        @else
+                            <div class="report-card">
+                                <p>No baby selected for preview.</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- History View -->
+            <div id="historyView" class="d-none">
+                <div class="report-card">
+                    <h5>Report History</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date Generated</th>
+                                    <th>Baby Name</th>
+                                    <th>Report Type</th>
+                                    <th>Period</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($recentReports as $report)
+                                    <tr>
+                                        <td>{{ \Carbon\Carbon::parse($report->generated_at)->format('M d, Y') }}</td>
+                                        <td>{{ $report->file_path['baby_name'] ?? 'Unknown Baby' }}</td>
+                                        <td>{{ $report->report_type }}</td>
+                                        <td>{{ \Carbon\Carbon::parse($report->start_date)->format('M d, Y') }} - {{ \Carbon\Carbon::parse($report->end_date)->format('M d, Y') }}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-download"></i></button>
+                                            <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-eye"></i></button>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    <nav aria-label="Report history navigation">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1">Previous</a>
+                            </li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-      // Initialize Charts
-      document.addEventListener("DOMContentLoaded", function () {
-        // Activity Chart
-        const activityCtx = document
-          .getElementById("activityChart")
-          .getContext("2d");
-        const activityChart = new Chart(activityCtx, {
-          type: "bar",
-          data: {
-            labels: ["Week 1", "Week 2", "Week 3", "Week 4"],
-            datasets: [
-              {
-                label: "Clinic Visits",
-                data: [15, 18, 20, 17],
-                backgroundColor: "rgba(43, 124, 133, 0.7)",
-                borderColor: "rgba(43, 124, 133, 1)",
-                borderWidth: 1,
-              },
-              {
-                label: "Field Visits",
-                data: [3, 4, 3, 2],
-                backgroundColor: "rgba(23, 88, 115, 0.7)",
-                borderColor: "rgba(23, 88, 115, 1)",
-                borderWidth: 1,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            scales: {
-              y: {
-                beginAtZero: true,
-                title: {
-                  display: true,
-                  text: "Number of Visits",
+        // Mobile menu functionality
+        const menuToggle = document.getElementById("menuToggle");
+        const sidebar = document.getElementById("sidebar");
+        const overlay = document.getElementById("overlay");
+        const mainContent = document.getElementById("mainContent");
+
+        menuToggle.addEventListener("click", function(e) {
+            e.stopPropagation();
+            sidebar.classList.toggle("show");
+            overlay.style.display = "block";
+        });
+
+        overlay.addEventListener("click", function() {
+            sidebar.classList.remove("show");
+            overlay.style.display = "none";
+        });
+
+        document.querySelectorAll(".sidebar .nav-link").forEach((link) => {
+            link.addEventListener("click", function() {
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.remove("show");
+                    overlay.style.display = "none";
+                }
+            });
+        });
+
+        window.addEventListener("resize", function() {
+            if (window.innerWidth > 768) {
+                overlay.style.display = "none";
+            }
+        });
+
+        // Toggle between views
+        document.getElementById("generate-tab").addEventListener("click", function() {
+            this.classList.add("active");
+            document.getElementById("history-tab").classList.remove("active");
+            document.getElementById("generateView").classList.remove("d-none");
+            document.getElementById("historyView").classList.add("d-none");
+        });
+
+        document.getElementById("history-tab").addEventListener("click", function() {
+            this.classList.add("active");
+            document.getElementById("generate-tab").classList.remove("active");
+            document.getElementById("historyView").classList.remove("d-none");
+            document.getElementById("generateView").classList.add("d-none");
+        });
+
+        // Toggle report fields based on category
+        function toggleReportFields() {
+            const category = document.getElementById("reportCategory").value;
+            const clientFields = document.getElementById("clientReportFields");
+            const workFields = document.getElementById("workReportFields");
+
+            clientFields.style.display = category === "client_report" ? "block" : "none";
+            workFields.style.display = category === "work_report" ? "block" : "none";
+        }
+
+        // Reset filters
+        function resetFilters() {
+            document.getElementById("reportForm").reset();
+            toggleReportFields();
+        }
+
+        // Initialize growth chart
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('growthChart').getContext('2d');
+            const growthChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: @json($growthData['labels']),
+                    datasets: [{
+                        label: 'Weight (kg)',
+                        data: @json($growthData['weight']),
+                        borderColor: '#2b7c85',
+                        backgroundColor: 'rgba(43, 124, 133, 0.1)',
+                        tension: 0.3,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Height (cm)',
+                        data: @json($growthData['height']),
+                        borderColor: '#175873',
+                        backgroundColor: 'rgba(23, 88, 115, 0.1)',
+                        tension: 0.3,
+                        yAxisID: 'y1'
+                    }]
                 },
-              },
-            },
-          },
-        });
-
-        // Targets Chart
-        const targetsCtx = document
-          .getElementById("targetsChart")
-          .getContext("2d");
-        const targetsChart = new Chart(targetsCtx, {
-          type: "doughnut",
-          data: {
-            labels: ["Achieved", "Partial", "Missed"],
-            datasets: [
-              {
-                data: [3, 1, 1],
-                backgroundColor: ["#28a745", "#ffc107", "#dc3545"],
-                borderWidth: 1,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: {
-                position: "bottom",
-              },
-            },
-          },
-        });
-      });
-
-      // Show/hide custom date range based on selection
-      document
-        .getElementById("timePeriod")
-        .addEventListener("change", function () {
-          const customRange = document.getElementById("customDateRange");
-          customRange.style.display =
-            this.value === "custom" ? "block" : "none";
-        });
-
-      // Show report options when custom report is selected
-      document
-        .getElementById("reportType")
-        .addEventListener("change", function () {
-          const reportOptions = document.getElementById("reportOptions");
-          reportOptions.style.display =
-            this.value === "custom" ? "block" : "none";
-        });
-
-      // Form submission handler
-      document
-        .getElementById("reportConfigForm")
-        .addEventListener("submit", function (e) {
-          e.preventDefault();
-
-          // Get form values
-          const reportType = document.getElementById("reportType").value;
-          const timePeriod = document.getElementById("timePeriod").value;
-
-          // Update report title based on selections
-          const reportTitle = document.getElementById("dynamicReportTitle");
-          const dateRange = document.getElementById("reportDateRange");
-
-          let typeText = "";
-          switch (reportType) {
-            case "performance":
-              typeText = "Performance";
-              break;
-            case "clinical":
-              typeText = "Clinical Activity";
-              break;
-            case "vaccination":
-              typeText = "Vaccination";
-              break;
-            case "nutrition":
-              typeText = "Nutrition";
-              break;
-            case "targets":
-              typeText = "Target Achievement";
-              break;
-            case "custom":
-              typeText = "Custom";
-              break;
-            default:
-              typeText = "Performance";
-          }
-
-          let periodText = "";
-          switch (timePeriod) {
-            case "week":
-              periodText = "Weekly";
-              dateRange.textContent = "June 19-25, 2023";
-              break;
-            case "month":
-              periodText = "Monthly";
-              dateRange.textContent = "June 1-30, 2023";
-              break;
-            case "quarter":
-              periodText = "Quarterly";
-              dateRange.textContent = "April 1 - June 30, 2023";
-              break;
-            case "year":
-              periodText = "Annual";
-              dateRange.textContent = "January 1 - December 31, 2023";
-              break;
-            case "custom":
-              periodText = "Custom";
-              const startDate = document.getElementById("startDate").value;
-              const endDate = document.getElementById("endDate").value;
-              dateRange.textContent = `${startDate} to ${endDate}`;
-              break;
-          }
-
-          reportTitle.textContent = `${periodText} ${typeText} Report`;
-
-          // Scroll to generated report
-          document.getElementById("generatedReport").scrollIntoView();
-        });
-
-      // Button actions
-      document
-        .getElementById("exportPdf")
-        .addEventListener("click", function () {
-          alert("PDF export functionality would be implemented here");
-        });
-
-      document
-        .getElementById("printReport")
-        .addEventListener("click", function () {
-          alert("Print functionality would be implemented here");
-        });
-
-      document
-        .getElementById("saveReport")
-        .addEventListener("click", function () {
-          alert("Report would be saved to your dashboard");
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Weight (kg)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Height (cm)'
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            }
+                        }
+                    }
+                }
+            });
         });
     </script>
-  </body>
+</body>
 </html>

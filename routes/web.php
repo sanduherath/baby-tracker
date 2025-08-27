@@ -3,6 +3,7 @@
 use App\Http\Controllers\MidwifeController;
 use App\Http\Controllers\PatientController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\PhmController;
 use App\Http\Controllers\GrowthController;
 use App\Http\Controllers\AdminLoginController;
@@ -14,50 +15,15 @@ use App\Http\Controllers\ThriposhaController;
 use App\Http\Controllers\VaccinationAlertController;
 use App\Http\Controllers\BabyDiaryController;
 use App\Http\Controllers\MidwifeDashboardController;
-use App\Http\Controllers\BabyLoginController;
-use Illuminate\Support\Facades\Auth;
 
-Route::get('/login', function () {
-    return redirect()->route('baby.login.form');
-})->name('login');
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [LoginController::class, 'login'])->name('login.post')->middleware('throttle:5,1');
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-Route::prefix('baby')->name('baby.')->group(function () {
-    Route::middleware('guest')->group(function () {
-        Route::get('/login', [BabyLoginController::class, 'showLoginForm'])->name('login.form');
-        Route::post('/login', [BabyLoginController::class, 'login'])->name('login.submit')->middleware('throttle:5,15');
-        Route::get('/reset-password', [BabyLoginController::class, 'showResetForm'])->name('password.reset');
-        Route::post('/reset-password', [BabyLoginController::class, 'resetPassword'])->name('password.reset.submit');
-        Route::post('/verify-credentials', [BabyLoginController::class, 'verifyCredentials'])->name('verify.credentials');
-        Route::get('/info/{email?}', [BabyLoginController::class, 'getBabyInfo'])->name('info');
-    });
-
-    Route::middleware('auth')->group(function () {
-        Route::post('/logout', [BabyLoginController::class, 'logout'])->name('logout');
-        Route::get('/dashboard', [BabyLoginController::class, 'dashboard'])->name('dashboard');
-    });
-});
-
-Route::prefix('midwife')->name('midwife.')->group(function () {
-    Route::middleware('auth')->group(function () {
-        // Example fix for duplicate name
-        Route::get('/appointments/{appointmentId}/clinic-record', [MidwifeController::class, 'showClinicRecord'])->name('appointments.clinic-record.view');
-        Route::post('/appointments/{appointmentId}/clinic-record', [MidwifeController::class, 'updateClinicRecord'])->name('appointments.clinic-record.update');
-        // Add other midwife routes here
-    });
-});
-
-Route::get('/baby', function () {
-    if (Auth::guard('web')->check()) {
-        return redirect()->route('baby.dashboard');
-    }
-    return redirect()->route('baby.login.form');
-});
-// Admin Authentication Routes
 Route::get('/admin/login', [AdminLoginController::class, 'showLoginForm'])->name('admin.login.form');
-Route::post('/admin/login', [AdminLoginController::class, 'login'])->name('admin.login.submit')->middleware('throttle:5,15');
+Route::post('/admin/login', [AdminLoginController::class, 'login'])->name('admin.login.submit');
 Route::post('/admin/logout', [AdminLoginController::class, 'logout'])->name('admin.logout');
 
-// Authenticated Routes
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::delete('/notifications/clear', [DashboardController::class, 'clearNotifications'])->name('notifications.clear');
@@ -66,22 +32,24 @@ Route::middleware(['auth'])->group(function () {
         return view('MOH.dashboard');
     })->name('moh.dashboard');
 
-    Route::get('/midwife/dashboard', [MidwifeDashboardController::class, 'index'])->name('midwife.dashboard');
+    Route::get('/midwife/dashboard', function () {
+        return view('midwife.dashboard');
+    })->name('midwife.dashboard');
 
     Route::get('/baby/dashboard', [BabyController::class, 'dashboard'])->name('baby.dashboard');
 
     Route::get('/midwife/add-patient', [MidwifeController::class, 'create'])->name('midwife.addpatient');
     Route::get('/midwife/patients', [PatientController::class, 'index'])->name('midwife.patients');
-    Route::post('/midwife/patients/baby', [PatientController::class, 'store-free-agents'])->name('midwife.storeBaby');
+    Route::post('/midwife/patients/baby', [PatientController::class, 'storeBaby'])->name('midwife.storeBaby');
     Route::post('/midwife/patients/pregnant', [PatientController::class, 'storePregnantWoman'])->name('midwife.storePregnantWoman');
-    Route::get('/midwife/baby/{id}', [PatientController::class, 'showBaby'])->name('midwife.baby.profile');
+    Route::get('/midwife/baby/{id}', [PatientController::class, 'showBaby'])->name('midwife.baby.profile'); // Renamed to avoid duplicate
     Route::delete('/midwife/baby/{id}', [PatientController::class, 'deleteBaby'])->name('baby.delete');
     Route::get('/midwife/pregnant/{id}', [PatientController::class, 'showPregnant'])->name('pregnant.profile');
     Route::delete('/midwife/pregnant/{id}', [PatientController::class, 'deletePregnant'])->name('pregnant.delete');
 
     Route::get('/baby/profile', function () {
         return view('baby.profile');
-    })->name('baby.profile');
+    })->name('baby.profile'); // Kept as the original profile route
 
     Route::get('/baby/{babyId}/diary', [BabyDiaryController::class, 'index'])->name('baby.diary');
     Route::post('/baby/{babyId}/diary', [BabyDiaryController::class, 'store'])->name('baby.diary.store');
@@ -97,7 +65,7 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/appointments/{appointment}', [AppointmentController::class, 'updateStatus'])->name('midwife.appointments.update');
     Route::post('/appointments/{appointment}/clinic-record', [AppointmentController::class, 'storeClinicRecord'])->name('midwife.appointments.clinic-record');
     Route::get('/appointments/search', [AppointmentController::class, 'search'])->name('midwife.appointments.search');
-    Route::patch('/appointments/{appointment}/reschedule', [AppointmentController::class, 'reschedule'])->name('midwife.appointments.reschedule');
+    Route::patch('/appointments/{appointment}/reschedule', [AppointmentController::class, 'reschedule'])->name('midwife.appointments.reschedule'); // Corrected name
     Route::get('/appointments/calendar', [AppointmentController::class, 'getCalendarAppointments'])->name('midwife.appointments.calendar');
     Route::get('/appointments/{appointment}/pending-vaccinations', [AppointmentController::class, 'getPendingVaccinations'])->name('midwife.appointments.pending-vaccinations');
     Route::patch('/appointments/{appointment}/status', [AppointmentController::class, 'updateStatus'])->name('midwife.appointments.status');
@@ -120,8 +88,16 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/vaccination-record', [PatientController::class, 'showVaccinationRecord'])->name('vaccination.record');
 });
 
-// Non-auth routes
+// Non-auth routes (outside middleware group)
 Route::post('/patients/baby', [PatientController::class, 'storeBaby'])->name('patients.storeBaby');
 Route::post('/patients/pregnant', [PatientController::class, 'storePregnantWoman'])->name('patients.storePregnantWoman');
-Route::post('/appointments/{appointmentId}/clinic-record', [AppointmentController::class, 'storeClinicRecord'])->name('midwife.appointments.clinic-record');
+Route::post('/appointments/{appointmentId}/clinic-record', [AppointmentController::class, 'storeClinicRecord'])->name('appointments.storeClinicRecord');
 Route::post('/appointments/search', [AppointmentController::class, 'search'])->name('appointments.search');
+
+
+Route::get('/midwife/dashboard', [MidwifeDashboardController::class, 'index'])->name('midwife.dashboard')->middleware('auth');
+
+use App\Http\Controllers\ReportController;
+
+Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+Route::post('/reports/generate', [ReportController::class, 'generate'])->name('reports.generate');

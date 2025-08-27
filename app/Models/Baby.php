@@ -56,20 +56,27 @@ class Baby extends Authenticatable
         'rh_contact_1',
         'rh_contact_2',
     ];
-protected $casts = [
-        'date_of_birth' => 'date',
+
+    protected $casts = [
+        'birth_date' => 'date',
+        'bcg_vaccine' => 'boolean',
+        'opv0_vaccine' => 'boolean',
+        'hepb_vaccine' => 'boolean',
     ];
+
     protected $hidden = [
         'password',
         'remember_token',
     ];
-public function getAuthIdentifierName()
-    {
-        return 'mother_email';
-    }
+
     protected $attributes = [
         'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
     ];
+
+    public function getAuthIdentifierName()
+    {
+        return 'mother_email';
+    }
 
     public function patient()
     {
@@ -89,13 +96,20 @@ public function getAuthIdentifierName()
     public function midwife()
     {
         return $this->belongsTo(User::class, 'user_id');
-           return $this->belongsTo(Midwife::class);
-
+        // Note: The second return statement for Midwife::class is unreachable; consider fixing
     }
 
     public function appointments()
     {
         return $this->hasMany(Appointment::class, 'patient_id')->where('patient_type', 'baby');
+    }
+
+    public function latest_appointment()
+    {
+        return $this->hasOne(Appointment::class, 'patient_id')
+                    ->where('patient_type', 'baby')
+                    ->orderBy('date', 'desc')
+                    ->orderBy('time', 'desc');
     }
 
     public function clinicRecords()
@@ -131,23 +145,14 @@ public function getAuthIdentifierName()
             $baby->clinicRecords()->delete();
         });
     }
+
     public function parent()
     {
         return $this->belongsTo(User::class, 'parent_id');
     }
 
-
     public function user()
     {
         return $this->belongsTo(User::class);
     }
-
-public function latest_appointment()
-{
-    return $this->hasOne(Appointment::class, 'patient_id')
-                ->where('patient_type', 'baby')
-                ->orderBy('date', 'desc')
-                ->orderBy('time', 'desc');
-}
-
 }

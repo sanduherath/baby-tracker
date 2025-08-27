@@ -385,53 +385,43 @@
             <div class="text-center mb-4 mt-3 d-none d-lg-block">
                 <img src="" class="rounded-circle mb-2 midphoto" alt="Profile" id="profileImage"
                     data-bs-toggle="modal" data-bs-target="#profileModal" />
-                <h5>{{ Auth::user()->name ?? 'Guest' }}</h5>
+                <h5>{{ Auth::user()->midwife->name ?? 'Midwife Name' }}</h5>
                 <small class="text-white-50">Registered Midwife</small>
             </div>
             <ul class="nav nav-pills flex-column mb-auto">
                 <li class="nav-item">
-                    <a href="{{ route('midwife.dashboard') }}" class="nav-link" style="color: #f8f9fa;">
+                    <a href="{{ route('midwife.dashboard') }}" class="nav-link"style="color:white">
                         <i class="fas fa-home"></i> Dashboard
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('midwife.patients') }}" class="nav-link" style="color: #f8f9fa;">
+                    <a href="{{ route('midwife.patients') }}" class="nav-link"style="color:white">
                         <i class="fas fa-baby"></i> My Patients
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('midwife.appointments') }}" class="nav-link" style="color: #f8f9fa;">
+                    <a href="{{ route('midwife.appointments') }}" class="nav-link "style="color:white">
                         <i class="fas fa-calendar-check"></i> Appointments
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link" style="color: #f8f9fa;">
-                        <i class="fas fa-chart-line"></i> Growth Tracking
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ route('thriposha.distribution') }}" class="nav-link active" style="color: #f8f9fa;">
+                    <a href="{{ route('thriposha.distribution') }}" class="nav-link active"style="color:white">
                         <i class="fas fa-utensils"></i> Nutrition
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link" style="color: #f8f9fa;">
+                    <a href="{{ route('vaccination_alerts.index') }}" class="nav-link"style="color:white">
                         <i class="fas fa-bell"></i> Alerts
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link" style="color: #f8f9fa;">
+                    <a href="{{ route('reports.index') }}" class="nav-link" style="color:white">
                         <i class="fas fa-file-medical"></i> Reports
-                    </a>
-                </li>
-                <li>
-                    <a href="#" class="nav-link" style="color: #f8f9fa;">
-                        <i class="fa-solid fa-calendar-days"></i> Diary
                     </a>
                 </li>
             </ul>
             <div class="mt-auto">
-                <a href="{{ route('logout') }}" class="nav-link">
+                <a href="" class="nav-link">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </a>
             </div>

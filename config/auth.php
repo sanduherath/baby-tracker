@@ -40,10 +40,6 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
-        'baby' => [
-        'driver' => 'session',
-        'provider' => 'babies',
-    ],
     ],
 
     /*
@@ -63,26 +59,18 @@ return [
     |
     */
 
-    // 'providers' => [
-    //     'users' => [
-    //         'driver' => 'eloquent',
-    //         'model' => env('AUTH_MODEL', App\Models\User::class),
-    //     ],
-    //     'babies' => [
-    //     'driver' => 'eloquent',
-    //     'model' => App\Models\Baby::class,
-    // ],
+    'providers' => [
+        'users' => [
+            'driver' => 'eloquent',
+            'model' => env('AUTH_MODEL', App\Models\User::class),
+        ],
 
+        // 'users' => [
+        //     'driver' => 'database',
+        //     'table' => 'users',
+        // ],
+    ],
 
-    //     // 'users' => [
-    //     //     'driver' => 'database',
-    //     //     'table' => 'users',
-    //     // ],
-    // ],
-'providers' => [
-    'users' => ['driver' => 'eloquent', 'model' => App\Models\User::class],
-    'babies' => ['driver' => 'eloquent', 'model' => App\Models\Baby::class],
-],
     /*
     |--------------------------------------------------------------------------
     | Resetting Passwords
@@ -110,10 +98,7 @@ return [
             'throttle' => 60,
         ],
     ],
-'redirects' => [
-    'web' => '/home',
-    'baby' => '/baby/dashboard',
-],
+
     /*
     |--------------------------------------------------------------------------
     | Password Confirmation Timeout
