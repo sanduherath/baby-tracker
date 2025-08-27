@@ -370,7 +370,7 @@
 </head>
 
 <body>
-    @php
+  @php
         use App\Models\Baby;
         use Carbon\Carbon;
 

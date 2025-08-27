@@ -81,5 +81,16 @@ class BabyController extends Controller
 
         return redirect()->back()->with('success', 'Baby registered and vaccinations initialized.');
     }
-    
+    public function dashboard()
+{
+    // Fetch the authenticated user's baby record
+    $user = \Illuminate\Support\Facades\Auth::user();
+    $baby = $user->baby ?? null;
+
+    // Fetch baby's vaccinations if baby exists
+    $vaccinations = $baby ? $baby->vaccinations : collect();
+
+    // Pass baby and vaccinations to the dashboard view
+    return view('baby.dashboard', compact('baby', 'vaccinations'));
+}
 }

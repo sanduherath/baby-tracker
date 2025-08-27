@@ -15,11 +15,12 @@ use App\Http\Controllers\VaccinationAlertController;
 use App\Http\Controllers\BabyDiaryController;
 use App\Http\Controllers\MidwifeDashboardController;
 use App\Http\Controllers\BabyLoginController;
+use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Auth;
 
-Route::get('/login', function () {
-    return redirect()->route('baby.login.form');
-})->name('login');
+// Route::get('/login', function () {
+//     return redirect()->route('baby.login.form');
+// })->name('login');
 
 Route::prefix('baby')->name('baby.')->group(function () {
     Route::middleware('guest')->group(function () {
@@ -125,3 +126,8 @@ Route::post('/patients/baby', [PatientController::class, 'storeBaby'])->name('pa
 Route::post('/patients/pregnant', [PatientController::class, 'storePregnantWoman'])->name('patients.storePregnantWoman');
 Route::post('/appointments/{appointmentId}/clinic-record', [AppointmentController::class, 'storeClinicRecord'])->name('midwife.appointments.clinic-record');
 Route::post('/appointments/search', [AppointmentController::class, 'search'])->name('appointments.search');
+
+Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+Route::post('/reports/generate', [ReportController::class, 'generate'])->name('reports.generate');
+
+

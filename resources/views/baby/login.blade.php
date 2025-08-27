@@ -248,7 +248,7 @@
                 }, 1000);
             </script>
 
-            <form method="POST" action="{{ route('baby.login') }}">
+            <form method="POST" action="{{ route('baby.login.submit') }}">
                 @csrf
                 <div class="form-group">
                     <label for="email" class="form-label">Email</label>

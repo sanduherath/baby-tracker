@@ -14,7 +14,7 @@ class DashboardController extends Controller
     {
         if (!Auth::check() || !Auth::user()->baby) {
             Log::error('No authenticated user or baby found', ['user_id' => Auth::id()]);
-            return redirect()->route('login')->with('status', 'User not authenticated or baby not found.');
+            return redirect('/login')->with('status', 'User not authenticated or baby not found.');
         }
 
         $user = Auth::user();

@@ -511,7 +511,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="" class="nav-link"style="color:white">
+                    <a href="{{ route('vaccination_alerts.index') }}" class="nav-link"style="color:white">
                         <i class="fas fa-bell"></i> Alerts
                     </a>
                 </li>

@@ -20,58 +20,52 @@ class BabyLoginController extends Controller
 
     public function showLoginForm()
     {
-        if (Auth::guard('web')->check()) {
-            return redirect()->route('baby.dashboard');
-        }
 
         return view('baby.login');
     }
 
-    public function login(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'email' => ['required', 'string', 'email', 'max:255'],
-            'password' => ['required', 'string', 'min:6'],
-        ], [
-            'email.required' => 'Email is required.',
-            'email.email' => 'Invalid email format.',
-            'password.required' => 'Password is required.',
-            'password.min' => 'Password must be at least 6 characters.',
-        ]);
+   public function login(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'email' => ['required', 'string', 'email', 'max:255'],
+        'password' => ['required', 'string', 'min:6'],
+    ], [
+        'email.required' => 'Email is required.',
+        'email.email' => 'Invalid email format.',
+        'password.required' => 'Password is required.',
+        'password.min' => 'Password must be at least 6 characters.',
+    ]);
 
-        if ($validator->fails()) {
-            Log::warning('Validation failed', ['errors' => $validator->errors()]);
-            return redirect()->back()->withErrors($validator)->withInput();
-        }
+    if ($validator->fails()) {
+        Log::warning('Validation failed', ['errors' => $validator->errors()]);
+        return redirect()->back()->withErrors($validator)->withInput();
+    }
 
-        $email = trim(strtolower($request->email));
-        $password = $request->password;
+    $email = trim(strtolower($request->email));
+    $password = $request->password;
 
-        Log::info('Login attempt', ['email' => $email]);
+    Log::info('Login attempt', ['email' => $email]);
 
-        $user = User::where('email', $email)->where('role', 'parent')->first();
+    // Check in babies table
+    $baby = \App\Models\Baby::where('mother_email', $email)->first();
 
-        if (!$user) {
-            Log::warning('No parent user found', ['email' => $email]);
-            return redirect()->back()->withErrors(['email' => 'Invalid email or password.'])->withInput();
-        }
-
-        Log::info('User found', ['email' => $email, 'stored_password' => $user->password]);
-
-        if (!Hash::check($password, $user->password)) {
-            Log::warning('Password mismatch', ['email' => $email, 'input_password' => $password]);
-            return redirect()->back()->withErrors(['email' => 'Invalid email or password.'])->withInput();
-        }
-
-        if (Auth::guard('web')->attempt(['email' => $email, 'password' => $password], $request->filled('remember'))) {
-            $request->session()->regenerate();
-            Log::info('Login successful', ['email' => $email, 'user_id' => $user->id]);
-            return redirect()->route('baby.dashboard');
-        }
-
-        Log::error('Authentication failed', ['email' => $email]);
+    if (!$baby) {
+        Log::warning('No baby found for mother_email', ['email' => $email]);
         return redirect()->back()->withErrors(['email' => 'Invalid email or password.'])->withInput();
     }
+
+    // Check password (assuming it's hashed in the babies table)
+    if (!\Illuminate\Support\Facades\Hash::check($password, $baby->password)) {
+        Log::warning('Password mismatch for baby login', ['email' => $email]);
+        return redirect()->back()->withErrors(['email' => 'Invalid email or password.'])->withInput();
+    }
+
+    // Optionally, you can log the user in using session
+    session(['baby_id' => $baby->id]);
+    Log::info('Baby login successful', ['baby_id' => $baby->id, 'mother_email' => $email]);
+
+    return redirect()->route('baby.dashboard');
+}
 
     public function logout(Request $request)
     {
@@ -83,7 +77,7 @@ class BabyLoginController extends Controller
 
     public function showResetForm()
     {
-        return view('baby.reset-password');
+        // return view('baby.reset-password');
     }
 
     public function resetPassword(Request $request)
