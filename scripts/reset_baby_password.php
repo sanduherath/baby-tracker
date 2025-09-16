@@ -10,7 +10,10 @@ use Illuminate\Support\Facades\Auth;
 
 $email = 'sanu@gmail.com';
 $b = Baby::where('mother_email', $email)->first();
-if (! $b) { echo "No baby found for {$email}\n"; exit(1); }
+if (! $b) {
+    echo "No baby found for {$email}\n";
+    exit(1);
+}
 
 $new = 'testpass';
 $b->password = Hash::make($new);

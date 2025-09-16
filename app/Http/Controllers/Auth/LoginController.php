@@ -137,8 +137,9 @@ class LoginController extends Controller
                 Log::error('Login successful - baby guard check failed', ['error' => $e->getMessage()]);
             }
 
-            return redirect()->intended(route('baby.dashboard'))
-                ->with('status', 'You have been successfully logged in!');
+            $redirectUrl = route('baby.dashboard');
+            Log::info('Redirecting baby to dashboard', ['url' => $redirectUrl]);
+            return redirect()->to($redirectUrl)->with('status', 'You have been successfully logged in!');
         }
 
         // Also log default guard case for completeness
@@ -149,8 +150,9 @@ class LoginController extends Controller
             Log::error('Login successful - default guard check failed', ['error' => $e->getMessage()]);
         }
 
-        return redirect()->intended(route('dashboard'))
-            ->with('status', 'You have been successfully logged in!');
+        $redirectUrl = route('dashboard');
+        Log::info('Redirecting default guard to dashboard', ['url' => $redirectUrl]);
+        return redirect()->to($redirectUrl)->with('status', 'You have been successfully logged in!');
     }
 
     /**

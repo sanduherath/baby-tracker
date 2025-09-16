@@ -108,9 +108,9 @@ class Baby extends Authenticatable
     public function latest_appointment()
     {
         return $this->hasOne(Appointment::class, 'patient_id')
-                    ->where('patient_type', 'baby')
-                    ->orderBy('date', 'desc')
-                    ->orderBy('time', 'desc');
+            ->where('patient_type', 'baby')
+            ->orderBy('date', 'desc')
+            ->orderBy('time', 'desc');
     }
 
     public function clinicRecords()

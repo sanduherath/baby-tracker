@@ -10,7 +10,10 @@ use Illuminate\Support\Facades\Auth;
 
 $email = 'sanu@gmail.com';
 $b = Baby::where('mother_email', $email)->first();
-if (! $b) { echo "No baby found for {$email}\n"; exit(1); }
+if (! $b) {
+    echo "No baby found for {$email}\n";
+    exit(1);
+}
 
 echo "Baby ID: {$b->id}\n";
 echo "Mother email: {$b->mother_email}\n";

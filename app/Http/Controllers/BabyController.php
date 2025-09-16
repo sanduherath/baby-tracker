@@ -85,7 +85,7 @@ class BabyController extends Controller
 
         return redirect()->back()->with('success', 'Baby registered and vaccinations initialized.');
     }
-    
+
     /**
      * Show the baby dashboard. Support either a baby authenticated via the baby guard
      * or a User model that has a related baby.
@@ -116,5 +116,4 @@ class BabyController extends Controller
 
         return view('baby.dashboard', compact('baby', 'notifications'));
     }
-    
 }

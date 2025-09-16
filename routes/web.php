@@ -37,7 +37,7 @@ Route::middleware(['auth'])->group(function () {
         return view('midwife.dashboard');
     })->name('midwife.dashboard');
 
-    
+
 
     Route::get('/midwife/add-patient', [MidwifeController::class, 'create'])->name('midwife.addpatient');
     Route::get('/midwife/patients', [PatientController::class, 'index'])->name('midwife.patients');
