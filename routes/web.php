@@ -65,7 +65,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/baby/{babyId}/diary', [BabyDiaryController::class, 'index'])->name('baby.diary')->middleware('auth:baby');
     Route::post('/baby/{babyId}/diary', [BabyDiaryController::class, 'store'])->name('baby.diary.store')->middleware('auth:baby');
 
-    Route::get('/growth/{baby_id}', [GrowthController::class, 'show'])->name('growth.show');
 
     Route::get('/phm', [PhmController::class, 'index'])->name('phm.index');
     Route::get('/phm/create', [PhmController::class, 'showCreateForm'])->name('phm.create');
@@ -81,7 +80,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/appointments/{appointment}/pending-vaccinations', [AppointmentController::class, 'getPendingVaccinations'])->name('midwife.appointments.pending-vaccinations');
     Route::patch('/appointments/{appointment}/status', [AppointmentController::class, 'updateStatus'])->name('midwife.appointments.status');
 
-    Route::get('/baby/checkups', [BabyCheckupController::class, 'index'])->name('baby.checkups');
 
     Route::get('/midwife/nutrition', [ThriposhaController::class, 'index'])->name('thriposha.distribution');
     Route::post('/thriposha/distribution', [ThriposhaController::class, 'store'])->name('thriposha.distributions.store');
@@ -96,7 +94,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/vaccination-alerts/schedule', [VaccinationAlertController::class, 'scheduleAppointment'])->name('vaccination_alerts.schedule');
     Route::post('/vaccination-alerts/reschedule', [VaccinationAlertController::class, 'rescheduleAppointment'])->name('vaccination_alerts.reschedule');
 
-    Route::get('/vaccination-record', [PatientController::class, 'showVaccinationRecord'])->name('vaccination.record');
+    // Note: baby-facing routes moved to the baby-specific middleware group below so
+    // baby-guard authenticated sessions (auth:baby) are honored.
 });
 
 // Baby-specific routes (protected by baby guard)
@@ -116,6 +115,11 @@ Route::middleware(['auth:baby'])->group(function () {
 
     Route::get('/baby/{babyId}/diary', [BabyDiaryController::class, 'index'])->name('baby.diary');
     Route::post('/baby/{babyId}/diary', [BabyDiaryController::class, 'store'])->name('baby.diary.store');
+
+    // Baby-facing pages that should be accessible with the baby guard
+    Route::get('/growth/{baby_id}', [GrowthController::class, 'show'])->name('growth.show');
+    Route::get('/vaccination-record', [PatientController::class, 'showVaccinationRecord'])->name('vaccination.record');
+    Route::get('/baby/checkups', [BabyCheckupController::class, 'index'])->name('baby.checkups');
 });
 
 // Non-auth routes (outside middleware group)

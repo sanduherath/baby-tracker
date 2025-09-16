@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -13,14 +14,19 @@ class BabyCheckupController extends Controller
 {
     public function index(Request $request)
     {
-        if (!Auth::check() || !Auth::user()->baby) {
-            Log::error('No authenticated user or baby not found.', [
-                'user_id' => Auth::id(),
+        // Prefer the baby guard for baby routes. Fall back to default user relationship if needed.
+        if (Auth::guard('baby')->check()) {
+            $baby = Auth::guard('baby')->user();
+        } elseif (Auth::check() && method_exists(Auth::user(), 'baby')) {
+            $baby = Auth::user()->baby;
+        } else {
+            Log::error('No authenticated baby or user not found for baby checkups', [
+                'guard_baby' => Auth::guard('baby')->check(),
+                'default_auth' => Auth::check(),
+                'auth_id' => Auth::id(),
             ]);
             return redirect()->route('login')->with('status', 'User not authenticated or baby not found.');
         }
-
-        $baby = Auth::user()->baby;
         $today = Carbon::today('Asia/Kolkata');
         $highlightedAppointmentId = $request->query('appointment_id');
 

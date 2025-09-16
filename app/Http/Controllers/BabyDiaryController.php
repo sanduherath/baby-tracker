@@ -11,30 +11,37 @@ use Illuminate\Support\Facades\Log;
 
 class BabyDiaryController extends Controller
 {
-public function index(Request $request, $babyId)
-{
-    Log::info("Accessing diary for babyId: $babyId, user: " . Auth::id());
-    $baby = Baby::where('id', $babyId)->where('user_id', Auth::id())->firstOrFail();
-    $query = BabyDiary::where('baby_id', $babyId);
-    if ($request->filled('search_date')) {
-        $searchDate = $request->input('search_date');
-        Log::info("Filtering entries by date: $searchDate");
-        $query->whereDate('entry_date', $searchDate);
+    public function index(Request $request, $babyId)
+    {
+        // Use the baby guard when available so baby-authenticated sessions are respected
+        $currentBabyId = Auth::guard('baby')->id() ?? Auth::id();
+        Log::info("Accessing diary for babyId: $babyId, currentBabyId: " . ($currentBabyId ?? 'NULL'));
+        $baby = Baby::where('id', $babyId)->where(function ($q) use ($currentBabyId) {
+            $q->where('id', $currentBabyId)->orWhere('user_id', $currentBabyId);
+        })->firstOrFail();
+        $query = BabyDiary::where('baby_id', $babyId);
+        if ($request->filled('search_date')) {
+            $searchDate = $request->input('search_date');
+            Log::info("Filtering entries by date: $searchDate");
+            $query->whereDate('entry_date', $searchDate);
+        }
+        $entries = $query->latest()->paginate(5);
+        Log::info("Fetched entries for babyId: $babyId", [
+            'total_entries' => $entries->total(),
+            'current_page' => $entries->currentPage(),
+            'search_date' => $request->input('search_date', 'none'),
+        ]);
+        return view('baby.diary', compact('baby', 'entries'));
     }
-    $entries = $query->latest()->paginate(5);
-    Log::info("Fetched entries for babyId: $babyId", [
-        'total_entries' => $entries->total(),
-        'current_page' => $entries->currentPage(),
-        'search_date' => $request->input('search_date', 'none'),
-    ]);
-    return view('baby.diary', compact('baby', 'entries'));
-}
 
     public function store(Request $request, $babyId)
     {
 
-        Log::info("Storing diary entry for babyId: $babyId, user: " . Auth::id());
-        $baby = Baby::where('id', $babyId)->where('user_id', Auth::id())->firstOrFail();
+        $currentBabyId = Auth::guard('baby')->id() ?? Auth::id();
+        Log::info("Storing diary entry for babyId: $babyId, currentBabyId: " . ($currentBabyId ?? 'NULL'));
+        $baby = Baby::where('id', $babyId)->where(function ($q) use ($currentBabyId) {
+            $q->where('id', $currentBabyId)->orWhere('user_id', $currentBabyId);
+        })->firstOrFail();
 
         // Log request data for debugging
         Log::info('Request data:', $request->all());

@@ -186,7 +186,8 @@ class PatientController extends Controller
 
     public function showVaccinationRecord()
     {
-        $baby = Baby::where('id', Auth::id())->firstOrFail();
+        $babyId = Auth::guard('baby')->id() ?? Auth::id();
+        $baby = Baby::where('id', $babyId)->firstOrFail();
         $vaccinations = $baby->vaccinations()->get();
 
         return view('baby.vaccination', compact('baby', 'vaccinations')); // Fixed case: 'Vaccination' to 'vaccination'

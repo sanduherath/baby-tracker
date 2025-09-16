@@ -202,7 +202,7 @@
         <div class="container">
             <div class="d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center">
-                    <a href="{{ route('dashboard') }}" class="btn-back me-3">
+                    <a href="{{ route('baby.dashboard') }}" class="btn-back me-3">
                         <i class="fas fa-arrow-left me-2"></i> Dashboard
                     </a>
                     <img src="https://cdn-icons-png.flaticon.com/512/1864/1864593.png" alt="Baby"

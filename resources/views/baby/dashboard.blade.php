@@ -493,7 +493,7 @@
             <!-- Navigation -->
             <ul class="nav nav-pills mb-4 justify-content-center">
                 <li class="nav-item">
-                    <a class="nav-link active" href="{{ route('dashboard') }}">
+                    <a class="nav-link active" href="{{ route('baby.dashboard') }}">
                         <i class="fas fa-home me-1"></i> Dashboard
                     </a>
                 </li>

@@ -457,7 +457,7 @@
 
         <!-- Back Button -->
         <div class="text-center">
-           <a href="{{ route('dashboard') }}" class="btn-back">
+           <a href="{{ route('baby.dashboard') }}" class="btn-back">
     <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
 </a>
 
