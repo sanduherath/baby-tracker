@@ -160,7 +160,7 @@
                 </div>
                 <div><span class="badge bg-white text-dark"><i class="fas fa-birthday-cake me-1"
                             style="color: var(--baby-pink)"></i>
-                         {{ round(\Carbon\Carbon::parse($baby->birth_date)->floatDiffInMonths(now()), 1) }}
+                        {{ round(\Carbon\Carbon::parse($baby->birth_date)->floatDiffInMonths(now()), 1) }}
                         months old</span></div>
             </div>
         </div>

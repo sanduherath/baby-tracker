@@ -284,7 +284,7 @@
                                 </td>
                                 <td data-label="Date Administered">
                                     @php
-                                       
+
 
                                         if ($vaccine->date_administered) {
                                             $date = Carbon::parse($vaccine->date_administered);

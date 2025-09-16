@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Baby Diary | BabyCare</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-     <link
+    <link
         href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Comic+Neue:wght@400;700&display=swap"
         rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -232,17 +232,17 @@
 
 <body>
     <script>
-  // Auto close alerts after 6 seconds
-  setTimeout(function () {
-    let alerts = document.querySelectorAll('.alert');
-    alerts.forEach(function (alert) {
-      // Bootstrap 5 fade out
-      alert.classList.remove('show');
-      alert.classList.add('fade');
-      setTimeout(() => alert.remove(), 300); // Remove from DOM after fade
-    });
-  }, 2000);
-</script>
+        // Auto close alerts after 6 seconds
+        setTimeout(function() {
+            let alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                // Bootstrap 5 fade out
+                alert.classList.remove('show');
+                alert.classList.add('fade');
+                setTimeout(() => alert.remove(), 300); // Remove from DOM after fade
+            });
+        }, 2000);
+    </script>
     @if ($baby)
         <div class="diary-header">
             <div class="container">
@@ -262,10 +262,10 @@
                     </div>
                     <div>
                         <span class="badge bg-white text-dark">
-                        <i class="fas fa-birthday-cake me-1" style="color: var(--baby-pink)"></i>
-                        {{ round(\Carbon\Carbon::parse($baby->birth_date)->floatDiffInMonths(now()), 1) }}
-                        months old
-                    </span>
+                            <i class="fas fa-birthday-cake me-1" style="color: var(--baby-pink)"></i>
+                            {{ round(\Carbon\Carbon::parse($baby->birth_date)->floatDiffInMonths(now()), 1) }}
+                            months old
+                        </span>
                     </div>
                 </div>
             </div>
