@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Baby;
 use App\Models\Vaccination;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Appointment;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class BabyController extends Controller
 {
@@ -80,6 +84,37 @@ class BabyController extends Controller
         }
 
         return redirect()->back()->with('success', 'Baby registered and vaccinations initialized.');
+    }
+    
+    /**
+     * Show the baby dashboard. Support either a baby authenticated via the baby guard
+     * or a User model that has a related baby.
+     */
+    public function dashboard()
+    {
+        // Prefer baby guard
+        if (Auth::guard('baby')->check()) {
+            $baby = Auth::guard('baby')->user();
+        } elseif (Auth::check() && method_exists(Auth::user(), 'baby')) {
+            $baby = Auth::user()->baby;
+        } else {
+            Log::warning('No authenticated baby or user found for baby dashboard', ['id' => Auth::id()]);
+            return redirect()->route('login')->with('status', 'User not authenticated or baby not found.');
+        }
+
+        $today = Carbon::today('Asia/Kolkata');
+
+        $notifications = Appointment::where('patient_type', 'baby')
+            ->where('patient_id', $baby->id)
+            ->where('status', 'scheduled')
+            ->whereDate('date', '>=', $today)
+            ->where('read', false)
+            ->with('midwife')
+            ->orderBy('date', 'asc')
+            ->orderBy('time', 'asc')
+            ->get();
+
+        return view('baby.dashboard', compact('baby', 'notifications'));
     }
     
 }

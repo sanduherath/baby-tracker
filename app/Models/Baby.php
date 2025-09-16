@@ -75,7 +75,8 @@ class Baby extends Authenticatable
 
     public function getAuthIdentifierName()
     {
-        return 'mother_email';
+        // Return the primary id so Auth::id() returns the baby primary key (used across controllers)
+        return 'id';
     }
 
     public function patient()

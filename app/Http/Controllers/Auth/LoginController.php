@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Log;
+use App\Models\Baby;
 
 class LoginController extends Controller
 {
@@ -32,6 +34,20 @@ class LoginController extends Controller
     public function login(Request $request)
     {
         $this->validateLogin($request);
+
+        // Debug info: check if a baby exists for the provided email and whether the hash matches
+        try {
+            $email = $request->input('email');
+            $baby = Baby::where('mother_email', $email)->first();
+            if ($baby) {
+                $pwMatches = \Illuminate\Support\Facades\Hash::check($request->input('password'), $baby->password);
+                Log::info('Login attempt for baby email', ['email' => $email, 'baby_id' => $baby->id, 'password_matches' => $pwMatches, 'updated_at' => $baby->updated_at]);
+            } else {
+                Log::info('Login attempt - baby not found for email', ['email' => $email]);
+            }
+        } catch (\Throwable $e) {
+            Log::error('Error during login debug check', ['error' => $e->getMessage()]);
+        }
 
         // Check if the user has too many login attempts
         if ($this->hasTooManyLoginAttempts($request)) {
@@ -71,8 +87,9 @@ class LoginController extends Controller
      */
     protected function attemptLogin(Request $request)
     {
-        return Auth::attempt(
-            $this->credentials($request),
+        // Use the 'baby' guard so authentication checks the babies provider/model
+        return Auth::guard('baby')->attempt(
+            $this->babyCredentials($request),
             $request->filled('remember')
         );
     }
@@ -89,6 +106,18 @@ class LoginController extends Controller
     }
 
     /**
+     * Credentials mapped for baby authentication.
+     * Babies use 'mother_email' as the identifier in the babies table.
+     */
+    protected function babyCredentials(Request $request)
+    {
+        return [
+            'mother_email' => $request->input('email'),
+            'password' => $request->input('password'),
+        ];
+    }
+
+    /**
      * Send the response after the user was authenticated.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -97,6 +126,28 @@ class LoginController extends Controller
     protected function sendLoginResponse(Request $request)
     {
         $request->session()->regenerate();
+
+        // If logged in as a baby (via baby guard) redirect to baby dashboard.
+        if (Auth::guard('baby')->check()) {
+            // Log guard state for debugging: confirm guard persisted after session regeneration
+            try {
+                $babyUser = Auth::guard('baby')->user();
+                Log::info('Login successful - baby guard check', ['guard_check' => true, 'baby_id' => $babyUser ? $babyUser->id : null]);
+            } catch (\Throwable $e) {
+                Log::error('Login successful - baby guard check failed', ['error' => $e->getMessage()]);
+            }
+
+            return redirect()->intended(route('baby.dashboard'))
+                ->with('status', 'You have been successfully logged in!');
+        }
+
+        // Also log default guard case for completeness
+        try {
+            $user = Auth::user();
+            Log::info('Login successful - default guard', ['user_id' => $user ? $user->id : null]);
+        } catch (\Throwable $e) {
+            Log::error('Login successful - default guard check failed', ['error' => $e->getMessage()]);
+        }
 
         return redirect()->intended(route('dashboard'))
             ->with('status', 'You have been successfully logged in!');
@@ -195,7 +246,12 @@ class LoginController extends Controller
      */
     public function logout(Request $request)
     {
-        Auth::logout();
+        // Logout from baby guard if authenticated as baby, otherwise default
+        if (Auth::guard('baby')->check()) {
+            Auth::guard('baby')->logout();
+        } else {
+            Auth::logout();
+        }
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

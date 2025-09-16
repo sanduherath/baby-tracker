@@ -40,6 +40,11 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        // Guard for baby authentication (uses session driver but the babies provider)
+        'baby' => [
+            'driver' => 'session',
+            'provider' => 'babies',
+        ],
     ],
 
     /*
@@ -63,6 +68,12 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', App\Models\User::class),
+        ],
+
+        // Provider for babies table/model
+        'babies' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Baby::class,
         ],
 
         // 'users' => [

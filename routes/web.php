@@ -3,6 +3,7 @@
 use App\Http\Controllers\MidwifeController;
 use App\Http\Controllers\PatientController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\PhmController;
 use App\Http\Controllers\GrowthController;
@@ -36,7 +37,7 @@ Route::middleware(['auth'])->group(function () {
         return view('midwife.dashboard');
     })->name('midwife.dashboard');
 
-    Route::get('/baby/dashboard', [BabyController::class, 'dashboard'])->name('baby.dashboard');
+    
 
     Route::get('/midwife/add-patient', [MidwifeController::class, 'create'])->name('midwife.addpatient');
     Route::get('/midwife/patients', [PatientController::class, 'index'])->name('midwife.patients');
@@ -48,11 +49,21 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/midwife/pregnant/{id}', [PatientController::class, 'deletePregnant'])->name('pregnant.delete');
 
     Route::get('/baby/profile', function () {
-        return view('baby.profile');
-    })->name('baby.profile'); // Kept as the original profile route
+        // Provide the $baby variable whether the visitor is authenticated via the baby guard
+        // or is a normal User who has a related baby.
+        if (Auth::guard('baby')->check()) {
+            $baby = Auth::guard('baby')->user();
+        } elseif (Auth::check() && method_exists(Auth::user(), 'baby')) {
+            $baby = Auth::user()->baby;
+        } else {
+            return redirect()->route('login')->with('status', 'User not authenticated or baby not found.');
+        }
 
-    Route::get('/baby/{babyId}/diary', [BabyDiaryController::class, 'index'])->name('baby.diary');
-    Route::post('/baby/{babyId}/diary', [BabyDiaryController::class, 'store'])->name('baby.diary.store');
+        return view('baby.profile', compact('baby'));
+    })->name('baby.profile')->middleware('auth:baby'); // Kept as the original profile route
+
+    Route::get('/baby/{babyId}/diary', [BabyDiaryController::class, 'index'])->name('baby.diary')->middleware('auth:baby');
+    Route::post('/baby/{babyId}/diary', [BabyDiaryController::class, 'store'])->name('baby.diary.store')->middleware('auth:baby');
 
     Route::get('/growth/{baby_id}', [GrowthController::class, 'show'])->name('growth.show');
 
@@ -88,6 +99,25 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/vaccination-record', [PatientController::class, 'showVaccinationRecord'])->name('vaccination.record');
 });
 
+// Baby-specific routes (protected by baby guard)
+Route::middleware(['auth:baby'])->group(function () {
+    Route::get('/baby/dashboard', [BabyController::class, 'dashboard'])->name('baby.dashboard');
+    Route::get('/baby/profile', function () {
+        if (Auth::guard('baby')->check()) {
+            $baby = Auth::guard('baby')->user();
+        } elseif (Auth::check() && method_exists(Auth::user(), 'baby')) {
+            $baby = Auth::user()->baby;
+        } else {
+            return redirect()->route('login')->with('status', 'User not authenticated or baby not found.');
+        }
+
+        return view('baby.profile', compact('baby'));
+    })->name('baby.profile');
+
+    Route::get('/baby/{babyId}/diary', [BabyDiaryController::class, 'index'])->name('baby.diary');
+    Route::post('/baby/{babyId}/diary', [BabyDiaryController::class, 'store'])->name('baby.diary.store');
+});
+
 // Non-auth routes (outside middleware group)
 Route::post('/patients/baby', [PatientController::class, 'storeBaby'])->name('patients.storeBaby');
 Route::post('/patients/pregnant', [PatientController::class, 'storePregnantWoman'])->name('patients.storePregnantWoman');
@@ -101,3 +131,13 @@ use App\Http\Controllers\ReportController;
 
 Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 Route::post('/reports/generate', [ReportController::class, 'generate'])->name('reports.generate');
+
+// Development helper: log in as a baby by ID (only in local environment)
+Route::get('/_dev/login-as-baby/{id}', function ($id) {
+    if (! app()->environment('local')) {
+        abort(403, 'Not allowed');
+    }
+
+    Auth::guard('baby')->loginUsingId($id);
+    return redirect()->route('baby.dashboard');
+});
